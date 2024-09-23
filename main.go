@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
 )
 
 // type Options struct {
@@ -30,7 +32,18 @@ func main() {
 	fmt.Printf("Order in reverse: %v\n", *reverser)
 
 	args := flag.Args()
-	fmt.Printf("Other arguments: %v\n", args)
+	if len(args) == 0 {
+		files, err := os.ReadDir(".")
+		if err != nil {
+			log.Fatal(err)
+		}
+	
+		for _, file := range files {
+			fmt.Printf("%s ", file.Name())
+		}
+		fmt.Printf("Other arguments: %v\n", args)
+
+    }
 	// options.progName = os.Args[0]
 	// args := os.Args[1:]
 	// for _, arg := range args {
