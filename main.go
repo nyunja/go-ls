@@ -50,7 +50,7 @@ func main() {
 	
 		
     }
-	// fmt.Printf("Other arguments: %v\n", args)
+	fmt.Printf("Other arguments: %v\n", args)
 	// options.progName = os.Args[0]
 	// args := os.Args[1:]
 	// for _, arg := range args {
