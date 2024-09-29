@@ -37,13 +37,20 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-	
-		for _, file := range files {
-			fmt.Printf("%s ", file.Name())
+		if *longFormat == true {
+			for _, file := range files {
+                fmt.Println(file.Name())
+            }
+		} else {
+			for _, file := range files {
+				fmt.Printf("%s ", file.Name())
+			}
+			fmt.Println()
 		}
-		fmt.Printf("Other arguments: %v\n", args)
-
+	
+		
     }
+	// fmt.Printf("Other arguments: %v\n", args)
 	// options.progName = os.Args[0]
 	// args := os.Args[1:]
 	// for _, arg := range args {
