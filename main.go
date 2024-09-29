@@ -34,13 +34,13 @@ func main() {
 	// fmt.Printf("Order time: %v\n", *timeFlag)
 	// fmt.Printf("Order in reverse: %v\n", *reverser)
 
-	var path string
-	if len(parsedArgs) > 1 {
-		fmt.Println("Usage: go run . [options] [path]\n[options] are flags\n[path] is the path to the directory whose contents you want to list. This is optional.")
-		return
-	}
+	var paths []string
+	// if len(parsedArgs) > 1 {
+	// 	fmt.Println("Usage: go run . [options] [path]\n[options] are flags\n[path] is the path to the directory whose contents you want to list. This is optional.")
+	// 	return
+	// }
 	if len(parsedArgs) == 0 {
-		path = "."
+		paths = []string{"."}
 		// files, err := os.ReadDir(".")
 		// if err != nil {
 		// 	log.Fatal(err)
@@ -57,10 +57,10 @@ func main() {
 		// }
 
 	} else {
-		path = parsedArgs[0]
+		paths = parsedArgs
 	}
 	fmt.Printf("Other arguments: %v\n", parsedArgs)
-	fmt.Println(path)
+	fmt.Println(paths)
 	// options.progName = os.Args[0]
 	// args := os.Args[1:]
 	// for _, arg := range args {
