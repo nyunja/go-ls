@@ -6,13 +6,6 @@ import (
 	"os"
 )
 
-// type Options struct {
-// 	l        bool
-// 	a        bool
-// 	progName string
-// 	path     string
-// }
-
 var (
 	// Declare flag formats
 	longFormat   = flag.Bool("l", false, "Use long listing format.")
@@ -98,14 +91,6 @@ func displayShortList(paths []string) {
 			continue
 		} else {
 			dirList = addDirList(dirList, path)
-			// files, err := os.ReadDir(fi.Name())
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
-			// for _, file := range files {
-			// 	// filesList = append(filesList, file.Name())
-			// 	fmt.Printf("%s ", file.Name())
-			// }
 		}
 		// Get list of files in the directory
 	}
@@ -152,14 +137,6 @@ func displayLongList(paths []string) {
 			continue
 		} else {
 			dirList = addDirList(dirList, path)
-			// files, err := os.ReadDir(fi.Name())
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
-			// for _, file := range files {
-			// 	// filesList = append(filesList, file.Name())
-			// 	fmt.Printf("%s ", file.Name())
-			// }
 		}
 		// Get list of files in the directory
 	}
