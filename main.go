@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -34,13 +35,13 @@ func main() {
 	// fmt.Printf("Order time: %v\n", *timeFlag)
 	// fmt.Printf("Order in reverse: %v\n", *reverser)
 
-	var paths []string
+	// var paths []string
 	// if len(parsedArgs) > 1 {
 	// 	fmt.Println("Usage: go run . [options] [path]\n[options] are flags\n[path] is the path to the directory whose contents you want to list. This is optional.")
 	// 	return
 	// }
 	if len(parsedArgs) == 0 {
-		paths = []string{"."}
+		parsedArgs = []string{"."}
 		// files, err := os.ReadDir(".")
 		// if err != nil {
 		// 	log.Fatal(err)
@@ -57,10 +58,11 @@ func main() {
 		// }
 
 	} else {
-		paths = parsedArgs
+		// paths = parsedArgs
 	}
+	displayShortList(parsedArgs)
 	fmt.Printf("Other arguments: %v\n", parsedArgs)
-	fmt.Println(paths)
+	// fmt.Println(paths)
 	// options.progName = os.Args[0]
 	// args := os.Args[1:]
 	// for _, arg := range args {
@@ -114,3 +116,55 @@ func parseFlags(args []string) (parsedArgs []string) {
 // func ls(args []string) error {
 
 // }
+func displayShortList(paths []string) {
+	var noFileList []string
+	var filesList []string
+	var dirList []string
+	for _, path := range paths {
+		fi, err := os.Stat(path)
+		// fmt.Println(fi.Mode())
+		if err != nil {
+			s := fmt.Sprintf("ls: %v: no file or directory\n", path)
+			noFileList = append(noFileList, s)
+			continue
+		}
+		if !fi.IsDir() {
+			filesList = append(filesList, fi.Name())
+			continue
+		} else {
+			dirList = addDirList(dirList, path)
+			files, err := os.ReadDir(fi.Name())
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, file := range files {
+				// filesList = append(filesList, file.Name())
+				fmt.Printf("%s ", file.Name())
+			}
+		}
+		// Get list of files in the directory
+	}
+	for _, f := range noFileList {
+		fmt.Println(f)
+	}
+	for _, f := range filesList {
+		fmt.Println(f)
+	}
+	for _, f := range dirList {
+		fmt.Println(f)
+	}
+}
+
+func addDirList(dirList []string, path string) []string {
+	file, err := os.Open(path)
+	if err != nil {
+		return dirList
+	}
+	fileNames, err := file.Readdirnames(0)
+	if err != nil {
+		return dirList
+	}
+	dirList = append(dirList, path + ":")
+	dirList = append(dirList, fileNames...)
+	return dirList
+}
