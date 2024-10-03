@@ -122,24 +122,19 @@ func addDirList(dirList []string, path string) []string {
 }
 
 func addLongDirList(dirList []string, path string) []string {
-	file, err := os.Open(path)
-	if err != nil {
-		return dirList
-	}
-	fileNames, err := file.Readdirnames(0)
+	entries, err := os.ReadDir(path)
 	if err != nil {
 		return dirList
 	}
 	dirList = append(dirList, "\n"+path+":")
-	sort.Strings(fileNames)
-	for _, f := range fileNames {
-		fi, err := os.Stat(path + "/"+ f)
-		if err != nil {
-			fmt.Printf("Error reading files directory: %v\n", path)
-			continue
-		}
-		size := calcSize(fi.Size())
-		s := fmt.Sprintf("%v 1 johnotieno0 bocal %s %v %v %v:%v %s", fi.Mode(), size, fi.ModTime().Month().String()[0:3], fi.ModTime().Day(), fi.ModTime().Hour(), fi.ModTime().Minute(), fi.Name())
+	for _, entry := range entries {
+		info,err := entry.Info()
+		if err!= nil {
+			fmt.Printf("error reading entry: %v", err)
+            continue
+        }
+		size := calcSize(info.Size())
+		s := fmt.Sprintf("%v 1 johnotieno0 bocal %s %v %v %v:%v %s", info.Mode(), size, info.ModTime().Month().String()[0:3], info.ModTime().Day(), info.ModTime().Hour(), info.ModTime().Minute(), info.Name())
 		dirList = append(dirList, s)
 	}
 	return dirList
