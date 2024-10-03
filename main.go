@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sort"
 )
 
 var (
@@ -16,7 +17,6 @@ var (
 )
 
 func main() {
-
 	// Parse flags from command line
 	args := os.Args[1:]
 	parsedArgs := parseFlags(args)
@@ -26,14 +26,15 @@ func main() {
 	// fmt.Printf("List subdirectories recursively: %v\n", *recursiveDir)
 	// fmt.Printf("Order time: %v\n", *timeFlag)
 	// fmt.Printf("Order in reverse: %v\n", *reverser)
-
 	if len(parsedArgs) == 0 {
 		parsedArgs = []string{"."}
+	}
+	if !*longFormat {
+		displayShortList(parsedArgs)
 	} else {
 		displayLongList(parsedArgs)
 		return
 	}
-	displayShortList(parsedArgs)
 	fmt.Printf("Other arguments: %v\n", parsedArgs)
 }
 
@@ -115,16 +116,43 @@ func addDirList(dirList []string, path string) []string {
 		return dirList
 	}
 	dirList = append(dirList, "\n"+path+":")
+	sort.Strings(fileNames)
 	dirList = append(dirList, fileNames...)
 	return dirList
 }
 
+func addLongDirList(dirList []string, path string) []string {
+	file, err := os.Open(path)
+	if err != nil {
+		return dirList
+	}
+	fileNames, err := file.Readdirnames(0)
+	if err != nil {
+		return dirList
+	}
+	dirList = append(dirList, "\n"+path+":")
+	sort.Strings(fileNames)
+	for _, f := range fileNames {
+		fi, err := os.Stat(path + "/"+ f)
+		if err != nil {
+			fmt.Printf("Error reading files directory: %v\n", path)
+			continue
+		}
+		size := calcSize(fi.Size())
+		s := fmt.Sprintf("%v 1 johnotieno0 bocal %s %v %v %v:%v %s", fi.Mode(), size, fi.ModTime().Month().String()[0:3], fi.ModTime().Day(), fi.ModTime().Hour(), fi.ModTime().Minute(), fi.Name())
+		dirList = append(dirList, s)
+	}
+	return dirList
+}
+
 func displayLongList(paths []string) {
+	fmt.Println("here is a short list display ", paths)
 	var noFileList []string
 	var filesList []string
 	var dirList []string
 	for _, path := range paths {
 		fi, err := os.Stat(path)
+		fmt.Println("here")
 		// fmt.Println(fi.Mode())
 		if err != nil {
 			s := fmt.Sprintf("ls: %v: no file or directory\n", path)
@@ -132,11 +160,12 @@ func displayLongList(paths []string) {
 			continue
 		}
 		if !fi.IsDir() {
-			s := fmt.Sprintf("%v %d %v %s", fi.Mode(), fi.Size(), fi.ModTime(), fi.Name())
+			size := calcSize(fi.Size())
+			s := fmt.Sprintf("%v 1 johnotieno0 bocal %s %v %v %v:%v %s", fi.Mode(), size, fi.ModTime().Month().String()[0:3], fi.ModTime().Day(), fi.ModTime().Hour(), fi.ModTime().Minute(), fi.Name())
 			filesList = append(filesList, s)
 			continue
 		} else {
-			dirList = addDirList(dirList, path)
+			dirList = addLongDirList(dirList, path)
 		}
 		// Get list of files in the directory
 	}
@@ -149,4 +178,9 @@ func displayLongList(paths []string) {
 	for _, f := range dirList {
 		fmt.Println(f)
 	}
+}
+
+func calcSize(s int64) string {
+	// unit := "B"
+	return fmt.Sprintf("%v", s)
 }
