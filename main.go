@@ -1,21 +1,23 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io/fs"
 	"os"
+	"os/user"
 	"sort"
+	"strconv"
 	"syscall"
+	"time"
 )
 
 var (
 	// Declare flag formats
-	longFormat   = flag.Bool("l", false, "Use long listing format.")
-	allFiles     = flag.Bool("a", false, "Show hidden files.")
-	recursiveDir = flag.Bool("R", false, "List subdirectories recursively.")
-	timeFlag     = flag.Bool("t", false, "List files in descending order of time (i.e. newest first)")
-	reverser     = flag.Bool("r", false, "List in reverse order.")
+	longFormat   = false
+	allFiles     = false
+	recursiveDir = false
+	timeFlag     = false
+	reverser     = false
 )
 
 func main() {
@@ -31,7 +33,7 @@ func main() {
 	if len(parsedArgs) == 0 {
 		parsedArgs = []string{"."}
 	}
-	if !*longFormat {
+	if !longFormat {
 		displayShortList(parsedArgs)
 	} else {
 		displayLongList(parsedArgs)
@@ -45,28 +47,28 @@ func parseFlags(args []string) (parsedArgs []string) {
 		if len(arg) > 1 && arg[0] == '-' {
 			switch arg {
 			case "--reverse":
-				*reverser = true
+				reverser = true
 			case "--long":
-				*longFormat = true
+				longFormat = true
 			case "--all":
-				*allFiles = true
+				allFiles = true
 			case "--recursive":
-				*recursiveDir = true
+				recursiveDir = true
 			case "--time":
-				*timeFlag = true
+				timeFlag = true
 			default:
 				for _, flag := range arg[1:] {
 					switch flag {
 					case 'l':
-						*longFormat = true
+						longFormat = true
 					case 'a':
-						*allFiles = true
+						allFiles = true
 					case 'R':
-						*recursiveDir = true
+						recursiveDir = true
 					case 't':
-						*timeFlag = true
+						timeFlag = true
 					case 'r':
-						*reverser = true
+						reverser = true
 					}
 				}
 			}
@@ -160,11 +162,41 @@ func addLongDirList(dirList []string, path string) []string {
 func getLongFormatString(info fs.FileInfo) string {
 	mode := info.Mode()
 	size := info.Size()
-	// modTime := info.ModTime()
+	// sizeLen := len(strconv.FormatInt(size, 10))
+	modTime := info.ModTime()
 	name := info.Name()
+	var owner, group string
+	var linkCount uint64
 
-	s := fmt.Sprintf("%v 1 johnotieno0 bocal %d %v %v %v:%v %s", mode, size, info.ModTime().Month().String()[0:3], info.ModTime().Day(), info.ModTime().Hour(), info.ModTime().Minute(), name)
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		uid := stat.Uid
+		gid := stat.Gid
+		linkCount = stat.Nlink
+		owner = strconv.FormatUint(uint64(uid), 10)
+		group = strconv.FormatUint(uint64(gid), 10)
+	} else {
+		fmt.Printf("error getting syscall info")
+		return ""
+	}
+	if u, err := user.LookupId(owner); err == nil {
+		owner = u.Username
+	}
+	if g, err := user.LookupGroupId(group); err == nil {
+		group = g.Name
+	}
+
+	timeString := formatTime(modTime)
+
+	s := fmt.Sprintf("%s %2d %s %s %8d %s %s", mode, linkCount, owner, group, size, timeString, name)
 	return s
+}
+
+func formatTime(modTime time.Time) string {
+	now := time.Now()
+	if modTime.Year() == now.Year() {
+		return modTime.Format("Jan _2 15:04")
+	}
+	return modTime.Format("Jan _2 2006")
 }
 
 func displayLongList(paths []string) {
