@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/fs"
 	"os"
 	"sort"
+	"syscall"
 )
 
 var (
@@ -127,17 +129,42 @@ func addLongDirList(dirList []string, path string) []string {
 		return dirList
 	}
 	dirList = append(dirList, "\n"+path+":")
+	var totalBlocks int64
 	for _, entry := range entries {
-		info,err := entry.Info()
-		if err!= nil {
+		info, err := entry.Info()
+		if err != nil {
 			fmt.Printf("error reading entry: %v", err)
-            continue
-        }
-		size := calcSize(info.Size())
-		s := fmt.Sprintf("%v 1 johnotieno0 bocal %s %v %v %v:%v %s", info.Mode(), size, info.ModTime().Month().String()[0:3], info.ModTime().Day(), info.ModTime().Hour(), info.ModTime().Minute(), info.Name())
+			continue
+		}
+		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+			totalBlocks += stat.Blocks
+		} else {
+			fmt.Printf("error getting syscall info: %v", err)
+			continue
+		}
+	}
+	dirList = append(dirList, fmt.Sprintf("total %d", totalBlocks/2))
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			fmt.Printf("error reading entry: %v", err)
+			continue
+		}
+		// size := calcSize(info.Size())
+		s := getLongFormatString(info)
 		dirList = append(dirList, s)
 	}
 	return dirList
+}
+
+func getLongFormatString(info fs.FileInfo) string {
+	mode := info.Mode()
+	size := info.Size()
+	// modTime := info.ModTime()
+	name := info.Name()
+
+	s := fmt.Sprintf("%v 1 johnotieno0 bocal %d %v %v %v:%v %s", mode, size, info.ModTime().Month().String()[0:3], info.ModTime().Day(), info.ModTime().Hour(), info.ModTime().Minute(), name)
+	return s
 }
 
 func displayLongList(paths []string) {
