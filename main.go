@@ -89,7 +89,7 @@ func displayShortList(paths []string) {
 			filesList = append(filesList, fi.Name())
 			continue
 		} else {
-			dirList = addDirList(dirList,hiddenFiles, path)
+			hiddenFiles, dirList = addDirList(dirList,hiddenFiles, path)
 		}
 		// Get list of files in the directory
 	}
@@ -110,14 +110,14 @@ func displayShortList(paths []string) {
 	}
 }
 
-func addDirList(dirList, hidden []string, path string) []string {
+func addDirList(dirList, hidden []string, path string) ([]string, []string) {
 	file, err := os.Open(path)
 	if err != nil {
-		return dirList
+		return hidden, dirList
 	}
 	fileNames, err := file.Readdirnames(0)
 	if err != nil {
-		return dirList
+		return hidden, dirList
 	}
 	dirList = append(dirList, "\n"+path+":")
 	sort.Strings(fileNames)
@@ -129,7 +129,7 @@ func addDirList(dirList, hidden []string, path string) []string {
         dirList = append(dirList, f)
 	}
 	dirList = append(dirList, fileNames...)
-	return dirList
+	return hidden, dirList
 }
 
 func addLongDirList(dirList, hidden []string, path string) ([]string,[]string) {
