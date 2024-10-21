@@ -107,6 +107,15 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 	}
 	return entries, nil
 }
+// parseFlags parses command-line arguments to extract flags and non-flag arguments.
+// It supports both long format (e.g., "--long") and short format (e.g., "-l") flags.
+//
+// Parameters:
+//   - args: A slice of strings representing the command-line arguments to be parsed.
+//
+// Returns:
+//   - flags: A Flags struct containing boolean values for each recognized flag.
+//   - parsedArgs: A slice of strings containing the non-flag arguments.
 func parseFlags(args []string) (flags Flags, parsedArgs []string) {
 	for _, arg := range args {
 		if len(arg) > 1 && arg[0] == '-' {
@@ -148,18 +157,6 @@ func displayShortList(entries []FileInfo) {
 	for _, entry := range entries {
 		fmt.Println(entry.name)
 	}
-}
-
-func addLongDirList(info fs.FileInfo, dirList []string) ([]string) {
-	// dirList = append(dirList, "\n"+path+":")
-	var totalBlocks int64
-	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-		totalBlocks += stat.Blocks
-	}
-	dirList = append(dirList, fmt.Sprintf("total %d", totalBlocks/2))
-	s := getLongFormatString(info)
-	dirList = append(dirList, s)
-	return dirList
 }
 
 func getLongFormatString(info fs.FileInfo) string {
@@ -205,40 +202,28 @@ func formatTime(modTime time.Time) string {
 }
 
 func displayLongFormat(entries []FileInfo) {
-	// var hiddenFiles []string
-	var noFileList []string
-	var filesList []string
-	var dirList []string
 	for _, entry := range entries {
 		fi := entry.info
-		// if err != nil {
-		// 	s := fmt.Sprintf("ls: %v: no file or directory\n", path)
-		// 	noFileList = append(noFileList, s)
-		// 	continue
-		// }
+		var totalBlocks int64
+		if stat, ok := fi.Sys().(*syscall.Stat_t); ok {
+			totalBlocks += stat.Blocks
+		}
+		fmt.Printf("total %d\n", totalBlocks)
 		s := getLongFormatString(fi)
 		if !fi.IsDir() {
 			fmt.Println(s)
 		} else {
-
-			dirList = addLongDirList(fi ,dirList)
+			var totalBlocks int64
+			if stat, ok := fi.Sys().(*syscall.Stat_t); ok {
+				totalBlocks += stat.Blocks
+			}
+			fmt.Println(s)
 		}
 
-		// Get list of files in the directory
-	}
-	// Display the sorted list
-	for _, f := range noFileList {
-		fmt.Println(f)
-	}
-	for _, f := range filesList {
-		fmt.Println(f)
-	}
-	for _, f := range dirList {
-		fmt.Println(f)
 	}
 }
 
-func calcSize(s int64) string {
-	// unit := "B"
-	return fmt.Sprintf("%v", s)
-}
+// func calcSize(s int64) string {
+// 	// unit := "B"
+// 	return fmt.Sprintf("%v", s)
+// }
