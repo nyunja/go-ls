@@ -29,19 +29,36 @@ type FileInfo struct {
 
 func main() {
 	// Parse flags from command line
-	args := os.Args[1:]
-	flags, parsedArgs := parseFlags(args)
-	if len(parsedArgs) == 0 {
-		parsedArgs = []string{"."}
+	flags, args := parseFlags(os.Args[1:])
+	if len(args) == 0 {
+		args = []string{"."}
 	}
-	if !flags.Long {
-		displayShortList(flags, parsedArgs)
-	} else {
-		displayLongList(flags, parsedArgs)
+	for i, path := range args {
+		err := listPath(path, flags)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ls: %s: %v\n", path, err)
+		}
+		if i < len(args)-1 {
+			fmt.Println()
+		}
+	}
+
+	if flags.Long {
+		displayLongList(flags, args)
 		return
 	}
 }
 
+func listPath(path string, flags Flags) error {
+	entries, err := readDir(path, flags)
+	if err != nil {
+		return err
+	}
+	if !flags.Long {
+		displayShortList(entries)
+	}
+	return nil
+}
 
 // readDir reads the contents of a directory and returns a slice of FileInfo structures.
 // It applies filtering and sorting based on the provided flags.
@@ -121,41 +138,9 @@ func parseFlags(args []string) (flags Flags, parsedArgs []string) {
 	return flags, parsedArgs
 }
 
-func displayShortList(flags Flags, paths []string) {
-	var hiddenFiles []string
-	var noFileList []string
-	var filesList []string
-	var dirList []string
-	for _, path := range paths {
-		fi, err := os.Stat(path)
-		// fmt.Println(fi.Mode())
-		if err != nil {
-			s := fmt.Sprintf("ls: %v: no file or directory\n", path)
-			noFileList = append(noFileList, s)
-			continue
-		}
-		if !fi.IsDir() {
-			filesList = append(filesList, fi.Name())
-			continue
-		} else {
-			hiddenFiles, dirList = addDirList(dirList, hiddenFiles, path)
-		}
-		// Get list of files in the directory
-	}
-	// Display the sorted list
-	if flags.All {
-		for _, f := range hiddenFiles {
-			fmt.Println(f)
-		}
-	}
-	for _, f := range noFileList {
-		fmt.Println(f)
-	}
-	for _, f := range filesList {
-		fmt.Println(f)
-	}
-	for _, f := range dirList {
-		fmt.Println(f)
+func displayShortList(entries []FileInfo) {
+	for _, entry := range entries {
+		fmt.Println(entry.name)
 	}
 }
 
