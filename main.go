@@ -7,18 +7,10 @@ import (
 	"os/user"
 	"sort"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
-
-// var (
-// 	// Declare flag formats
-// 	longFormat   = false
-// 	allFiles     = false
-// 	recursiveDir = false
-// 	timeFlag     = false
-// 	reverser     = false
-// )
 
 // Flag struct to store parsed flag and its value
 type Flags struct {
@@ -27,6 +19,12 @@ type Flags struct {
 	Recursive bool
 	Reverse   bool
 	Time      bool
+}
+
+// FileInfo struct to store file information from readDir function
+type FileInfo struct {
+	name string
+	info os.FileInfo
 }
 
 func main() {
@@ -44,6 +42,48 @@ func main() {
 	}
 }
 
+
+// readDir reads the contents of a directory and returns a slice of FileInfo structures.
+// It applies filtering and sorting based on the provided flags.
+//
+// Parameters:
+//   - path: A string representing the directory path to read.
+//   - flags: A Flags struct containing boolean flags to control the behavior of the function.
+//
+// Returns:
+//   - []FileInfo: A slice of FileInfo structures containing information about the directory entries.
+//   - error: An error if there was a problem reading the directory or its contents.
+func readDir(path string, flags Flags) ([]FileInfo, error) {
+	dir, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+	files, err := dir.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+	var entries []FileInfo
+	for _, file := range files {
+		if !flags.All && strings.HasPrefix(file.Name(), ".") {
+			continue
+		}
+		entries = append(entries, FileInfo{name: file.Name(), info: file})
+	}
+	sort.SliceStable(entries, func(i, j int) bool {
+		if flags.Time {
+			return entries[i].info.ModTime().After(entries[j].info.ModTime())
+		}
+		return entries[i].name < entries[j].name
+	})
+	if flags.Reverse {
+		for i := len(entries)/2 - 1; i >= 0; i-- {
+			opp := len(entries) - 1 - i
+			entries[i], entries[opp] = entries[opp], entries[i]
+		}
+	}
+	return entries, nil
+}
 func parseFlags(args []string) (flags Flags, parsedArgs []string) {
 	for _, arg := range args {
 		if len(arg) > 1 && arg[0] == '-' {
