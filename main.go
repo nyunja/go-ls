@@ -42,11 +42,6 @@ func main() {
 			fmt.Println()
 		}
 	}
-
-	if flags.Long {
-		displayLongList(flags, args)
-		return
-	}
 }
 
 // listPath lists the contents of a specified directory path based on the given flags.
@@ -65,6 +60,8 @@ func listPath(path string, flags Flags) error {
 	}
 	if !flags.Long {
 		displayShortList(entries)
+	} else {
+		displayLongFormat(entries)
 	}
 	return nil
 }
@@ -153,42 +150,16 @@ func displayShortList(entries []FileInfo) {
 	}
 }
 
-func addLongDirList(dirList, hidden []string, path string) ([]string, []string) {
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return hidden, dirList
-	}
+func addLongDirList(info fs.FileInfo, dirList []string) ([]string) {
 	// dirList = append(dirList, "\n"+path+":")
 	var totalBlocks int64
-	for _, entry := range entries {
-		info, err := entry.Info()
-		if err != nil {
-			fmt.Printf("error reading entry: %v", err)
-			continue
-		}
-		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-			totalBlocks += stat.Blocks
-		} else {
-			fmt.Printf("error getting syscall info: %v", err)
-			continue
-		}
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		totalBlocks += stat.Blocks
 	}
 	dirList = append(dirList, fmt.Sprintf("total %d", totalBlocks/2))
-	for _, entry := range entries {
-		info, err := entry.Info()
-		if err != nil {
-			fmt.Printf("error reading entry: %v", err)
-			continue
-		}
-		// Check if the files are hidden
-		s := getLongFormatString(info)
-		if s[0] == 'h' {
-			hidden = append(hidden, s[1:])
-			continue
-		}
-		dirList = append(dirList, s)
-	}
-	return hidden, dirList
+	s := getLongFormatString(info)
+	dirList = append(dirList, s)
+	return dirList
 }
 
 func getLongFormatString(info fs.FileInfo) string {
@@ -233,38 +204,29 @@ func formatTime(modTime time.Time) string {
 	return modTime.Format("Jan _2 2006")
 }
 
-func displayLongList(flags Flags, paths []string) {
-	var hiddenFiles []string
+func displayLongFormat(entries []FileInfo) {
+	// var hiddenFiles []string
 	var noFileList []string
 	var filesList []string
 	var dirList []string
-	for _, path := range paths {
-		fi, err := os.Stat(path)
-		if err != nil {
-			s := fmt.Sprintf("ls: %v: no file or directory\n", path)
-			noFileList = append(noFileList, s)
-			continue
-		}
+	for _, entry := range entries {
+		fi := entry.info
+		// if err != nil {
+		// 	s := fmt.Sprintf("ls: %v: no file or directory\n", path)
+		// 	noFileList = append(noFileList, s)
+		// 	continue
+		// }
+		s := getLongFormatString(fi)
 		if !fi.IsDir() {
-			s := getLongFormatString(fi)
-			filesList = append(filesList, s)
-			continue
+			fmt.Println(s)
+		} else {
+
+			dirList = addLongDirList(fi ,dirList)
 		}
-		hiddenFiles, dirList = addLongDirList(dirList, hiddenFiles, path)
 
 		// Get list of files in the directory
 	}
-	// Sort files and directories
-	sort.Strings(hiddenFiles)
-	sort.Strings(noFileList)
-	sort.Strings(filesList)
-	sort.Strings(dirList)
 	// Display the sorted list
-	if flags.All {
-		for _, f := range hiddenFiles {
-			fmt.Println(f)
-		}
-	}
 	for _, f := range noFileList {
 		fmt.Println(f)
 	}
