@@ -11,57 +11,66 @@ import (
 	"time"
 )
 
-var (
-	// Declare flag formats
-	longFormat   = false
-	allFiles     = false
-	recursiveDir = false
-	timeFlag     = false
-	reverser     = false
-)
+// var (
+// 	// Declare flag formats
+// 	longFormat   = false
+// 	allFiles     = false
+// 	recursiveDir = false
+// 	timeFlag     = false
+// 	reverser     = false
+// )
+
+// Flag struct to store parsed flag and its value
+type Flags struct {
+	Long      bool
+	All       bool
+	Recursive bool
+	Reverse   bool
+	Time      bool
+}
 
 func main() {
 	// Parse flags from command line
 	args := os.Args[1:]
-	parsedArgs := parseFlags(args)
+	flags, parsedArgs := parseFlags(args)
 	if len(parsedArgs) == 0 {
 		parsedArgs = []string{"."}
 	}
-	if !longFormat {
-		displayShortList(parsedArgs)
+	if !flags.Long {
+		displayShortList(flags, parsedArgs)
 	} else {
-		displayLongList(parsedArgs)
+		displayLongList(flags, parsedArgs)
 		return
 	}
 }
 
-func parseFlags(args []string) (parsedArgs []string) {
+func parseFlags(args []string) (flags Flags, parsedArgs []string) {
 	for _, arg := range args {
 		if len(arg) > 1 && arg[0] == '-' {
 			switch arg {
 			case "--reverse":
-				reverser = true
+				flags.Reverse = true
 			case "--long":
-				longFormat = true
+				flags.Long = true
 			case "--all":
-				allFiles = true
+				flags.All = true
 			case "--recursive":
-				recursiveDir = true
+				flags.Recursive = true
 			case "--time":
-				timeFlag = true
+				flags.Time = true
 			default:
 				for _, flag := range arg[1:] {
 					switch flag {
 					case 'l':
-						longFormat = true
+						flags.Long = true
 					case 'a':
-						allFiles = true
+						flags.All = true
 					case 'R':
-						recursiveDir = true
+						flags.Recursive = true
 					case 't':
-						timeFlag = true
+						flags.Time = true
 					case 'r':
-						reverser = true
+						flags.Reverse = true
 					}
 				}
 			}
@@ -69,10 +78,10 @@ func parseFlags(args []string) (parsedArgs []string) {
 			parsedArgs = append(parsedArgs, arg)
 		}
 	}
-	return parsedArgs
+	return flags, parsedArgs
 }
 
-func displayShortList(paths []string) {
+func displayShortList(flags Flags, paths []string) {
 	var hiddenFiles []string
 	var noFileList []string
 	var filesList []string
@@ -89,12 +98,12 @@ func displayShortList(paths []string) {
 			filesList = append(filesList, fi.Name())
 			continue
 		} else {
-			hiddenFiles, dirList = addDirList(dirList,hiddenFiles, path)
+			hiddenFiles, dirList = addDirList(dirList, hiddenFiles, path)
 		}
 		// Get list of files in the directory
 	}
 	// Display the sorted list
-	if allFiles {
+	if flags.All {
 		for _, f := range hiddenFiles {
 			fmt.Println(f)
 		}
@@ -123,16 +132,16 @@ func addDirList(dirList, hidden []string, path string) ([]string, []string) {
 	sort.Strings(fileNames)
 	for _, f := range fileNames {
 		if f[0] == '.' {
-            hidden = append(hidden, f)
-            continue
-        }
-        dirList = append(dirList, f)
+			hidden = append(hidden, f)
+			continue
+		}
+		dirList = append(dirList, f)
 	}
 	dirList = append(dirList, fileNames...)
 	return hidden, dirList
 }
 
-func addLongDirList(dirList, hidden []string, path string) ([]string,[]string) {
+func addLongDirList(dirList, hidden []string, path string) ([]string, []string) {
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		return hidden, dirList
@@ -162,9 +171,9 @@ func addLongDirList(dirList, hidden []string, path string) ([]string,[]string) {
 		// Check if the files are hidden
 		s := getLongFormatString(info)
 		if s[0] == 'h' {
-            hidden = append(hidden, s[1:])
-            continue
-        }
+			hidden = append(hidden, s[1:])
+			continue
+		}
 		dirList = append(dirList, s)
 	}
 	return hidden, dirList
@@ -212,7 +221,7 @@ func formatTime(modTime time.Time) string {
 	return modTime.Format("Jan _2 2006")
 }
 
-func displayLongList(paths []string) {
+func displayLongList(flags Flags, paths []string) {
 	var hiddenFiles []string
 	var noFileList []string
 	var filesList []string
@@ -239,7 +248,7 @@ func displayLongList(paths []string) {
 	sort.Strings(filesList)
 	sort.Strings(dirList)
 	// Display the sorted list
-	if allFiles {
+	if flags.All {
 		for _, f := range hiddenFiles {
 			fmt.Println(f)
 		}
