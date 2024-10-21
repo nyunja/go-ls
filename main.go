@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"os/user"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -62,6 +63,17 @@ func listPath(path string, flags Flags) error {
 		displayShortList(entries)
 	} else {
 		displayLongFormat(entries)
+	}
+	if flags.Recursive {
+		for _, entry := range entries {
+			if entry.info.IsDir() {
+				fmt.Println()
+				newPath := filepath.Join(path, entry.name)
+				if err := listPath(newPath, flags); err != nil {
+					fmt.Fprintf(os.Stderr, "ls: %s: %v\n", newPath, err)
+				}
+			}
+		}
 	}
 	return nil
 }
@@ -202,24 +214,15 @@ func formatTime(modTime time.Time) string {
 }
 
 func displayLongFormat(entries []FileInfo) {
+	var totalBlocks int64
 	for _, entry := range entries {
-		fi := entry.info
-		var totalBlocks int64
-		if stat, ok := fi.Sys().(*syscall.Stat_t); ok {
+		if stat, ok := entry.info.Sys().(*syscall.Stat_t); ok {
 			totalBlocks += stat.Blocks
 		}
-		fmt.Printf("total %d\n", totalBlocks)
-		s := getLongFormatString(fi)
-		if !fi.IsDir() {
-			fmt.Println(s)
-		} else {
-			var totalBlocks int64
-			if stat, ok := fi.Sys().(*syscall.Stat_t); ok {
-				totalBlocks += stat.Blocks
-			}
-			fmt.Println(s)
-		}
-
+	}
+	fmt.Printf("total %d\n", totalBlocks/2)
+	for _, entry := range entries {
+		fmt.Println(getLongFormatString(entry.info))
 	}
 }
 
