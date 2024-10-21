@@ -171,7 +171,7 @@ func displayShortList(entries []FileInfo) {
 	}
 }
 
-func getLongFormatString(info fs.FileInfo) string {
+func getLongFormatString(info fs.FileInfo, maxSize int) string {
 	mode := info.Mode()
 	size := info.Size()
 	modTime := info.ModTime()
@@ -198,10 +198,35 @@ func getLongFormatString(info fs.FileInfo) string {
 
 	timeString := formatTime(modTime)
 
-	s := fmt.Sprintf("%s %2d %s %s %8d %s %s", mode, linkCount, owner, group, size, timeString, name)
+	sizeStr := formatSize(size)
+
+	s := fmt.Sprintf("%s %2d %-8s %-8s %*s %s %s", mode, linkCount, owner, group, maxSize, sizeStr, timeString, name)
 	return s
 }
 
+func calculateMaxSizeWidth(entries []FileInfo) int {
+	maxSize := 0 
+	for _, entry := range entries {
+		sizeStr := formatSize(entry.info.Size())
+		if len(sizeStr) > maxSize {
+			maxSize = len(sizeStr)
+		}
+	}
+	return maxSize
+}
+
+func formatSize(size int64) string {
+	return fmt.Sprintf("%d", size)
+}
+// formatTime formats a given time based on whether it's in the current year or not.
+// For times in the current year, it returns the format "Jan _2 15:04".
+// For times in previous years, it returns the format "Jan _2 2006".
+//
+// Parameters:
+//   - modTime: A time.Time value representing the modification time to be formatted.
+//
+// Returns:
+//   - string: A formatted string representation of the input time.
 func formatTime(modTime time.Time) string {
 	now := time.Now()
 	if modTime.Year() == now.Year() {
@@ -218,8 +243,9 @@ func displayLongFormat(entries []FileInfo) {
 		}
 	}
 	fmt.Printf("total %d\n", totalBlocks/2)
+	maxSizeWidth := calculateMaxSizeWidth(entries)
 	for _, entry := range entries {
-		fmt.Println(getLongFormatString(entry.info))
+		fmt.Println(getLongFormatString(entry.info, maxSizeWidth))
 	}
 }
 
