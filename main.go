@@ -199,9 +199,6 @@ func getLongFormatString(info fs.FileInfo) string {
 	timeString := formatTime(modTime)
 
 	s := fmt.Sprintf("%s %2d %s %s %8d %s %s", mode, linkCount, owner, group, size, timeString, name)
-	if name[0] == '.' {
-		s = "h" + s
-	}
 	return s
 }
 
