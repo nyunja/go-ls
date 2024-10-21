@@ -49,6 +49,15 @@ func main() {
 	}
 }
 
+// listPath lists the contents of a specified directory path based on the given flags.
+//
+// Parameters:
+//   - path: A string representing the directory path to list.
+//   - flags: A Flags struct containing boolean flags to control the behavior of the listing.
+//
+// Returns:
+//   - error: An error if there was a problem reading the directory or displaying its contents.
+//     Returns nil if the operation was successful.
 func listPath(path string, flags Flags) error {
 	entries, err := readDir(path, flags)
 	if err != nil {
@@ -142,28 +151,6 @@ func displayShortList(entries []FileInfo) {
 	for _, entry := range entries {
 		fmt.Println(entry.name)
 	}
-}
-
-func addDirList(dirList, hidden []string, path string) ([]string, []string) {
-	file, err := os.Open(path)
-	if err != nil {
-		return hidden, dirList
-	}
-	fileNames, err := file.Readdirnames(0)
-	if err != nil {
-		return hidden, dirList
-	}
-	dirList = append(dirList, "\n"+path+":")
-	sort.Strings(fileNames)
-	for _, f := range fileNames {
-		if f[0] == '.' {
-			hidden = append(hidden, f)
-			continue
-		}
-		dirList = append(dirList, f)
-	}
-	dirList = append(dirList, fileNames...)
-	return hidden, dirList
 }
 
 func addLongDirList(dirList, hidden []string, path string) ([]string, []string) {
