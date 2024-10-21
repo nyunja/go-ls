@@ -1,70 +1,160 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"io/fs"
 	"os"
+	"os/user"
+	"path/filepath"
 	"sort"
+	"strconv"
+	"strings"
+	"syscall"
+	"time"
 )
 
-var (
-	// Declare flag formats
-	longFormat   = flag.Bool("l", false, "Use long listing format.")
-	allFiles     = flag.Bool("a", false, "Show hidden files.")
-	recursiveDir = flag.Bool("R", false, "List subdirectories recursively.")
-	timeFlag     = flag.Bool("t", false, "List files in descending order of time (i.e. newest first)")
-	reverser     = flag.Bool("r", false, "List in reverse order.")
-)
+// Flag struct to store parsed flag and its value
+type Flags struct {
+	Long      bool
+	All       bool
+	Recursive bool
+	Reverse   bool
+	Time      bool
+}
+
+// FileInfo struct to store file information from readDir function
+type FileInfo struct {
+	name string
+	info os.FileInfo
+}
 
 func main() {
 	// Parse flags from command line
-	args := os.Args[1:]
-	parsedArgs := parseFlags(args)
-
-	// fmt.Printf("Long format: %v\n", *longFormat)
-	// fmt.Printf("Show all files: %v\n", *allFiles)
-	// fmt.Printf("List subdirectories recursively: %v\n", *recursiveDir)
-	// fmt.Printf("Order time: %v\n", *timeFlag)
-	// fmt.Printf("Order in reverse: %v\n", *reverser)
-	if len(parsedArgs) == 0 {
-		parsedArgs = []string{"."}
+	flags, args := parseFlags(os.Args[1:])
+	if len(args) == 0 {
+		args = []string{"."}
 	}
-	if !*longFormat {
-		displayShortList(parsedArgs)
-	} else {
-		displayLongList(parsedArgs)
-		return
+	for i, path := range args {
+		err := listPath(path, flags)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ls: %s: %v\n", path, err)
+		}
+		if i < len(args)-1 {
+			fmt.Println()
+		}
 	}
-	fmt.Printf("Other arguments: %v\n", parsedArgs)
 }
 
-func parseFlags(args []string) (parsedArgs []string) {
+// listPath lists the contents of a specified directory path based on the given flags.
+//
+// Parameters:
+//   - path: A string representing the directory path to list.
+//   - flags: A Flags struct containing boolean flags to control the behavior of the listing.
+//
+// Returns:
+//   - error: An error if there was a problem reading the directory or displaying its contents.
+//     Returns nil if the operation was successful.
+func listPath(path string, flags Flags) error {
+	entries, err := readDir(path, flags)
+	if err != nil {
+		return err
+	}
+	if !flags.Long {
+		displayShortList(entries)
+	} else {
+		displayLongFormat(entries)
+	}
+	if flags.Recursive {
+		for _, entry := range entries {
+			if entry.info.IsDir() {
+				fmt.Println()
+				newPath := filepath.Join(path, entry.name)
+				if err := listPath(newPath, flags); err != nil {
+					fmt.Fprintf(os.Stderr, "ls: %s: %v\n", newPath, err)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// readDir reads the contents of a directory and returns a slice of FileInfo structures.
+// It applies filtering and sorting based on the provided flags.
+//
+// Parameters:
+//   - path: A string representing the directory path to read.
+//   - flags: A Flags struct containing boolean flags to control the behavior of the function.
+//
+// Returns:
+//   - []FileInfo: A slice of FileInfo structures containing information about the directory entries.
+//   - error: An error if there was a problem reading the directory or its contents.
+func readDir(path string, flags Flags) ([]FileInfo, error) {
+	dir, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+	files, err := dir.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+	var entries []FileInfo
+	for _, file := range files {
+		if !flags.All && strings.HasPrefix(file.Name(), ".") {
+			continue
+		}
+		entries = append(entries, FileInfo{name: file.Name(), info: file})
+	}
+	sort.SliceStable(entries, func(i, j int) bool {
+		if flags.Time {
+			return entries[i].info.ModTime().After(entries[j].info.ModTime())
+		}
+		return entries[i].name < entries[j].name
+	})
+	if flags.Reverse {
+		for i := len(entries)/2 - 1; i >= 0; i-- {
+			opp := len(entries) - 1 - i
+			entries[i], entries[opp] = entries[opp], entries[i]
+		}
+	}
+	return entries, nil
+}
+// parseFlags parses command-line arguments to extract flags and non-flag arguments.
+// It supports both long format (e.g., "--long") and short format (e.g., "-l") flags.
+//
+// Parameters:
+//   - args: A slice of strings representing the command-line arguments to be parsed.
+//
+// Returns:
+//   - flags: A Flags struct containing boolean values for each recognized flag.
+//   - parsedArgs: A slice of strings containing the non-flag arguments.
+func parseFlags(args []string) (flags Flags, parsedArgs []string) {
 	for _, arg := range args {
 		if len(arg) > 1 && arg[0] == '-' {
 			switch arg {
 			case "--reverse":
-				*reverser = true
+				flags.Reverse = true
 			case "--long":
-				*longFormat = true
+				flags.Long = true
 			case "--all":
-				*allFiles = true
+				flags.All = true
 			case "--recursive":
-				*recursiveDir = true
+				flags.Recursive = true
 			case "--time":
-				*timeFlag = true
+				flags.Time = true
 			default:
 				for _, flag := range arg[1:] {
 					switch flag {
 					case 'l':
-						*longFormat = true
+						flags.Long = true
 					case 'a':
-						*allFiles = true
+						flags.All = true
 					case 'R':
-						*recursiveDir = true
+						flags.Recursive = true
 					case 't':
-						*timeFlag = true
+						flags.Time = true
 					case 'r':
-						*reverser = true
+						flags.Reverse = true
 					}
 				}
 			}
@@ -72,110 +162,94 @@ func parseFlags(args []string) (parsedArgs []string) {
 			parsedArgs = append(parsedArgs, arg)
 		}
 	}
-	return parsedArgs
+	return flags, parsedArgs
 }
 
-func displayShortList(paths []string) {
-	var noFileList []string
-	var filesList []string
-	var dirList []string
-	for _, path := range paths {
-		fi, err := os.Stat(path)
-		// fmt.Println(fi.Mode())
-		if err != nil {
-			s := fmt.Sprintf("ls: %v: no file or directory\n", path)
-			noFileList = append(noFileList, s)
-			continue
-		}
-		if !fi.IsDir() {
-			filesList = append(filesList, fi.Name())
-			continue
-		} else {
-			dirList = addDirList(dirList, path)
-		}
-		// Get list of files in the directory
-	}
-	for _, f := range noFileList {
-		fmt.Println(f)
-	}
-	for _, f := range filesList {
-		fmt.Println(f)
-	}
-	for _, f := range dirList {
-		fmt.Println(f)
-	}
-}
-
-func addDirList(dirList []string, path string) []string {
-	file, err := os.Open(path)
-	if err != nil {
-		return dirList
-	}
-	fileNames, err := file.Readdirnames(0)
-	if err != nil {
-		return dirList
-	}
-	dirList = append(dirList, "\n"+path+":")
-	sort.Strings(fileNames)
-	dirList = append(dirList, fileNames...)
-	return dirList
-}
-
-func addLongDirList(dirList []string, path string) []string {
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return dirList
-	}
-	dirList = append(dirList, "\n"+path+":")
+func displayShortList(entries []FileInfo) {
 	for _, entry := range entries {
-		info,err := entry.Info()
-		if err!= nil {
-			fmt.Printf("error reading entry: %v", err)
-            continue
-        }
-		size := calcSize(info.Size())
-		s := fmt.Sprintf("%v 1 johnotieno0 bocal %s %v %v %v:%v %s", info.Mode(), size, info.ModTime().Month().String()[0:3], info.ModTime().Day(), info.ModTime().Hour(), info.ModTime().Minute(), info.Name())
-		dirList = append(dirList, s)
-	}
-	return dirList
-}
-
-func displayLongList(paths []string) {
-	fmt.Println("here is a short list display ", paths)
-	var noFileList []string
-	var filesList []string
-	var dirList []string
-	for _, path := range paths {
-		fi, err := os.Stat(path)
-		fmt.Println("here")
-		// fmt.Println(fi.Mode())
-		if err != nil {
-			s := fmt.Sprintf("ls: %v: no file or directory\n", path)
-			noFileList = append(noFileList, s)
-			continue
-		}
-		if !fi.IsDir() {
-			size := calcSize(fi.Size())
-			s := fmt.Sprintf("%v 1 johnotieno0 bocal %s %v %v %v:%v %s", fi.Mode(), size, fi.ModTime().Month().String()[0:3], fi.ModTime().Day(), fi.ModTime().Hour(), fi.ModTime().Minute(), fi.Name())
-			filesList = append(filesList, s)
-			continue
-		} else {
-			dirList = addLongDirList(dirList, path)
-		}
-		// Get list of files in the directory
-	}
-	for _, f := range noFileList {
-		fmt.Println(f)
-	}
-	for _, f := range filesList {
-		fmt.Println(f)
-	}
-	for _, f := range dirList {
-		fmt.Println(f)
+		fmt.Println(entry.name)
 	}
 }
 
-func calcSize(s int64) string {
-	// unit := "B"
-	return fmt.Sprintf("%v", s)
+func getLongFormatString(info fs.FileInfo, maxSize int) string {
+	mode := info.Mode()
+	size := info.Size()
+	modTime := info.ModTime()
+	name := info.Name()
+	var owner, group string
+	var linkCount uint64
+
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		uid := stat.Uid
+		gid := stat.Gid
+		linkCount = stat.Nlink
+		owner = strconv.FormatUint(uint64(uid), 10)
+		group = strconv.FormatUint(uint64(gid), 10)
+	} else {
+		fmt.Printf("error getting syscall info")
+		return ""
+	}
+	if u, err := user.LookupId(owner); err == nil {
+		owner = u.Username
+	}
+	if g, err := user.LookupGroupId(group); err == nil {
+		group = g.Name
+	}
+
+	timeString := formatTime(modTime)
+
+	sizeStr := formatSize(size)
+
+	s := fmt.Sprintf("%s %2d %-8s %-8s %*s %s %s", mode, linkCount, owner, group, maxSize, sizeStr, timeString, name)
+	return s
 }
+
+func calculateMaxSizeWidth(entries []FileInfo) int {
+	maxSize := 0 
+	for _, entry := range entries {
+		sizeStr := formatSize(entry.info.Size())
+		if len(sizeStr) > maxSize {
+			maxSize = len(sizeStr)
+		}
+	}
+	return maxSize
+}
+
+func formatSize(size int64) string {
+	return fmt.Sprintf("%d", size)
+}
+// formatTime formats a given time based on whether it's in the current year or not.
+// For times in the current year, it returns the format "Jan _2 15:04".
+// For times in previous years, it returns the format "Jan _2 2006".
+//
+// Parameters:
+//   - modTime: A time.Time value representing the modification time to be formatted.
+//
+// Returns:
+//   - string: A formatted string representation of the input time.
+func formatTime(modTime time.Time) string {
+	now := time.Now()
+	if modTime.Year() == now.Year() {
+		return modTime.Format("Jan _2 15:04")
+	}
+	return modTime.Format("Jan _2 2006")
+}
+
+func displayLongFormat(entries []FileInfo) {
+	var totalBlocks int64
+	for _, entry := range entries {
+		if stat, ok := entry.info.Sys().(*syscall.Stat_t); ok {
+			totalBlocks += stat.Blocks
+		}
+	}
+	fmt.Printf("total %d\n", totalBlocks/2)
+	maxSizeWidth := calculateMaxSizeWidth(entries)
+	for _, entry := range entries {
+		fmt.Println(getLongFormatString(entry.info, maxSizeWidth))
+	}
+}
+
+// func calcSize(s int64) string {
+// 	// unit := "B"
+// 	return fmt.Sprintf("%v", s)
+// }
