@@ -69,6 +69,7 @@ func listPath(path string, flags Flags) error {
 			if entry.info.IsDir() {
 				fmt.Println()
 				newPath := filepath.Join(path, entry.name)
+				fmt.Printf("%s:\n", newPath)
 				if err := listPath(newPath, flags); err != nil {
 					fmt.Fprintf(os.Stderr, "ls: %s: %v\n", newPath, err)
 				}
@@ -109,7 +110,7 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		if flags.Time {
 			return entries[i].info.ModTime().After(entries[j].info.ModTime())
 		}
-		return entries[i].name < entries[j].name
+		return strings.ToLower(entries[i].name) < strings.ToLower(entries[j].name)
 	})
 	if flags.Reverse {
 		for i := len(entries)/2 - 1; i >= 0; i-- {
