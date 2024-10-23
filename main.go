@@ -177,6 +177,9 @@ func getLongFormatString(info fs.FileInfo, maxSize int) string {
 	size := info.Size()
 	modTime := info.ModTime()
 	name := info.Name()
+	if strings.Contains(name, " ") {
+		name = "'" + name + "'"
+	}
 	var owner, group string
 	var linkCount uint64
 
