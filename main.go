@@ -186,7 +186,7 @@ func getFileType(name string) string {
 		return "excel"
 	case ".ppt", ".pptx":
 		return "powerpoint"
-	case ".zip", ".tar", ".gz", ".7z":
+	case ".zip", ".tar", ".gz", ".7z", "deb":
 		return "archive"
 	case ".mp3", ".wav", ".flac":
 		return "audio"
@@ -194,8 +194,6 @@ func getFileType(name string) string {
 		return "video"
 	case ".jpg", ".jpeg", ".png", ".gif":
 		return "image"
-	case ".go":
-		return "go"
 	case ".py":
 		return "python"
 	case ".js":
