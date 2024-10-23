@@ -120,6 +120,7 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 	}
 	return entries, nil
 }
+
 // parseFlags parses command-line arguments to extract flags and non-flag arguments.
 // It supports both long format (e.g., "--long") and short format (e.g., "-l") flags.
 //
@@ -172,6 +173,42 @@ func displayShortList(entries []FileInfo) {
 	}
 }
 
+func getFileType(name string) string {
+	ext := strings.ToLower(filepath.Ext(name))
+	switch ext {
+	case ".txt", ".md", ".log":
+		return "text"
+	case ".pdf":
+		return "pdf"
+	case ".doc", ".docx":
+		return "word"
+	case ".xls", ".xlsx":
+		return "excel"
+	case ".ppt", ".pptx":
+		return "powerpoint"
+	case ".zip", ".tar", ".gz", ".7z":
+		return "archive"
+	case ".mp3", ".wav", ".flac":
+		return "audio"
+	case ".mp4", ".avi", ".mkv":
+		return "video"
+	case ".jpg", ".jpeg", ".png", ".gif":
+		return "image"
+	case ".go":
+		return "go"
+	case ".py":
+		return "python"
+	case ".js":
+		return "javascript"
+	case ".html", ".htm":
+		return "html"
+	case ".css":
+		return "css"
+	default:
+		return "other"
+	}
+}
+
 func getLongFormatString(info fs.FileInfo, maxSize int) string {
 	mode := info.Mode()
 	size := info.Size()
@@ -179,6 +216,45 @@ func getLongFormatString(info fs.FileInfo, maxSize int) string {
 	name := info.Name()
 	if strings.Contains(name, " ") {
 		name = "'" + name + "'"
+	}
+	// Color coding based on file type
+	switch getFileType(name) {
+	case "text":
+		name = "\x1b[97m" + name + "\x1b[0m" // White
+	case "pdf":
+		name = "\x1b[91m" + name + "\x1b[0m" // Light Red
+	case "word":
+		name = "\x1b[94m" + name + "\x1b[0m" // Light Blue
+	case "excel":
+		name = "\x1b[92m" + name + "\x1b[0m" // Light Green
+	case "powerpoint":
+		name = "\x1b[93m" + name + "\x1b[0m" // Light Yellow
+	case "archive":
+		name = "\x1b[31m" + name + "\x1b[0m" // Red
+	case "audio":
+		name = "\x1b[96m" + name + "\x1b[0m" // Light Cyan
+	case "video":
+		name = "\x1b[95m" + name + "\x1b[0m" // Light Magenta
+	case "image":
+		name = "\x1b[35m" + name + "\x1b[0m" // Magenta
+	case "go":
+		name = "\x1b[36m" + name + "\x1b[0m" // Cyan
+	case "python":
+		name = "\x1b[33m" + name + "\x1b[0m" // Yellow
+	case "javascript":
+		name = "\x1b[33m" + name + "\x1b[0m" // Yellow
+	case "html":
+		name = "\x1b[91m" + name + "\x1b[0m" // Light Red
+	case "css":
+		name = "\x1b[36m" + name + "\x1b[0m" // Cyan
+	}
+	// Add color blue for directories
+	if info.IsDir() {
+		name = "\x1b[34m" + name + "\x1b[0m"
+	}
+	// Add color green for executables
+	if mode&0100 != 0 {
+		name = "\x1b[32m" + name + "\x1b[0m"
 	}
 	var owner, group string
 	var linkCount uint64
@@ -209,7 +285,7 @@ func getLongFormatString(info fs.FileInfo, maxSize int) string {
 }
 
 func calculateMaxSizeWidth(entries []FileInfo) int {
-	maxSize := 0 
+	maxSize := 0
 	for _, entry := range entries {
 		sizeStr := formatSize(entry.info.Size())
 		if len(sizeStr) > maxSize {
@@ -222,6 +298,7 @@ func calculateMaxSizeWidth(entries []FileInfo) int {
 func formatSize(size int64) string {
 	return fmt.Sprintf("%d", size)
 }
+
 // formatTime formats a given time based on whether it's in the current year or not.
 // For times in the current year, it returns the format "Jan _2 15:04".
 // For times in previous years, it returns the format "Jan _2 2006".
