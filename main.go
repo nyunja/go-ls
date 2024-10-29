@@ -95,6 +95,7 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		return nil, err
 	}
 	defer dir.Close()
+
 	files, err := dir.Readdir(-1)
 	if err != nil {
 		return nil, err
@@ -136,14 +137,10 @@ func parseFlags(args []string) (flags Flags, parsedArgs []string) {
 			switch arg {
 			case "--reverse":
 				flags.Reverse = true
-			case "--long":
-				flags.Long = true
 			case "--all":
 				flags.All = true
 			case "--recursive":
 				flags.Recursive = true
-			case "--time":
-				flags.Time = true
 			default:
 				for _, flag := range arg[1:] {
 					switch flag {
@@ -251,7 +248,7 @@ func getLongFormatString(info fs.FileInfo, maxSize int) string {
 		name = "\x1b[34m" + name + "\x1b[0m"
 	}
 	// Add color green for executables
-	if mode&0100 != 0 {
+	if mode&0o100 != 0 {
 		name = "\x1b[32m" + name + "\x1b[0m"
 	}
 	var owner, group string
