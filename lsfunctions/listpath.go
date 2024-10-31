@@ -64,6 +64,13 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		return nil, err
 	}
 	var entries []FileInfo
+
+	// Add etries for parents directory and current directory
+	if flags.All {
+		if currentInfo, err := os.Stat(path); err == nil {
+			entries = append(entries, FileInfo{Name: ".", Info: currentInfo})
+		}
+	}
 	for _, file := range files {
 		if !flags.All && strings.HasPrefix(file.Name(), ".") {
 			continue
