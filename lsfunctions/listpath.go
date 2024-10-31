@@ -70,6 +70,10 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		if currentInfo, err := os.Stat(path); err == nil {
 			entries = append(entries, FileInfo{Name: ".", Info: currentInfo})
 		}
+		parentDir := getParentDir(path)
+		if parentInfo, err := os.Stat(parentDir); err == nil {
+			entries = append(entries, FileInfo{Name: "..", Info: parentInfo})
+		}
 	}
 	for _, file := range files {
 		if !flags.All && strings.HasPrefix(file.Name(), ".") {
@@ -95,6 +99,25 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		}
 	}
 	return entries, nil
+}
+
+// Get parent directory
+func getParentDir(path string) string {
+	if path == "/" {
+		return "/"
+	}
+	lastIndexSep := strings.LastIndex(path, "/") 
+	if lastIndexSep == -1 {
+		return "/"
+	}
+	if lastIndexSep == len(path) -1 {
+		path = path[:lastIndexSep]
+		lastIndexSep = strings.LastIndex(path, "/")
+	}
+	if lastIndexSep == 0 {
+		return "/"
+	}
+	return path[:lastIndexSep]
 }
 
 // Clean string to remove -, _, and. from the name.
