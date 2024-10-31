@@ -101,14 +101,26 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 	return entries, nil
 }
 
-// Get parent directory
+
+// getParentDir returns the parent directory path of the given path.
+//
+// It handles various edge cases such as root directory, paths without separators,
+// and paths ending with a separator.
+//
+// Parameters:
+//   - path: A string representing the input path for which to find the parent directory.
+//
+// Returns:
+//   - A string representing the parent directory path.
+//     Returns "/" for the root directory, ".." for paths without separators,
+//     and the appropriate parent path for other cases.
 func getParentDir(path string) string {
 	if path == "/" {
 		return "/"
 	}
 	lastIndexSep := strings.LastIndex(path, "/") 
 	if lastIndexSep == -1 {
-		return "/"
+		return ".."
 	}
 	if lastIndexSep == len(path) -1 {
 		path = path[:lastIndexSep]
