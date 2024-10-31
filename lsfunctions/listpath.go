@@ -74,7 +74,12 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		if flags.Time {
 			return entries[i].Info.ModTime().After(entries[j].Info.ModTime())
 		}
-		return strings.ToLower(entries[i].Name) < strings.ToLower(entries[j].Name)
+		s1 := strings.ToLower(entries[i].Name)
+		s2 := strings.ToLower(entries[j].Name)
+		if cleanName(s1) == cleanName(s2) {
+			return entries[i].Name < entries[j].Name
+		}
+		return cleanName(s1) < cleanName(s2)
 	})
 	if flags.Reverse {
 		for i := len(entries)/2 - 1; i >= 0; i-- {
@@ -83,4 +88,14 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		}
 	}
 	return entries, nil
+}
+
+// Clean string to remove -, _, and. from the name.
+func cleanName(name string) string {
+    return strings.Map(func(r rune) rune {
+        if r == '-' || r == '_' || r == '.' {
+            return -1
+        }
+        return r
+    }, name)
 }
