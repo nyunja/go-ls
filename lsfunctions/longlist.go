@@ -132,7 +132,7 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 	sizeStr := toString(size)
 
 	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", modCol, modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
-	if entry.LinkTarget != "" {
+	if s[0] == 'l' && entry.LinkTarget != "" {
 		s += " -> " + entry.LinkTarget
 	}
 	return s
