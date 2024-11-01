@@ -33,14 +33,19 @@ func DisplayLongFormat(entries []FileInfo) {
 func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol int) string {
 	info := entry.Info
 	mode := info.Mode()
+	modeStr := mode.String()
 	size := info.Size()
 	modTime := info.ModTime()
 	name := entry.Name
 	if strings.Contains(name, " ") {
 		name = "'" + name + "'"
 	}
+	// Add color blue for directories
+	if info.IsDir() {
+		name = "\x1b[34m" + name + "\x1b[0m"
+	}
 	// Color coding based on file type
-	switch getFileType(name) {
+	switch getFileType(entry) {
 	case "text":
 		name = "\x1b[97m" + name + "\x1b[0m" // White
 	case "pdf":
@@ -69,15 +74,24 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 		name = "\x1b[91m" + name + "\x1b[0m" // Light Red
 	case "css":
 		name = "\x1b[36m" + name + "\x1b[0m" // Cyan
+	case "link":
+		name = "\x1b[38;5;100m" + name + "\x1b[0m"
+		if strings.HasPrefix(mode.String(), "L") {
+			modeStr = "l" + modeStr[1:]
+		}
+		target, err := os.Readlink(info.Name()) // Get target link
+		if err == nil {
+			_, err := os.Stat(target)
+			if err == nil {
+				name += " -> " + target
+			} else {
+				name += " -> " + target + " (Broken link)"
+			}
+		}
+	case "exec":
+		name = "\x1b[32m" + name + "\x1b[0m" // Add color green for executables
 	}
-	// Add color blue for directories
-	if info.IsDir() {
-		name = "\x1b[34m" + name + "\x1b[0m"
-	}
-	// Add color green for executables
-	if mode&0o100 != 0 {
-		name = "\x1b[32m" + name + "\x1b[0m"
-	}
+	
 	// Format symbolic links
 	// if mode&fs.ModeSymlink != 0 {
 	// 	target, err := os.Readlink(info.Name()) // Get target link
@@ -90,21 +104,7 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 	// 		}
 	// 	}
 	// }
-	modeStr := mode.String()
-	if strings.HasPrefix(mode.String(), "L") {
-		modeStr = "l" + modeStr[1:]
-		target, err := os.Readlink(info.Name()) // Get target link
-		if err == nil {
-			_, err := os.Stat(target)
-			if err == nil {
-				name += " -> " + target
-				fmt.Println("Here")
-				os.Exit(1)
-			} else {
-				name += " -> " + target + " (Broken link)"
-			}
-		}
-	}
+	
 
 	var owner, group string
 	var linkCount uint64
@@ -130,7 +130,7 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 
 	sizeStr := toString(size)
 
-	s := fmt.Sprintf("%*s %*d %-*s %-*s %*s %*s  %s", modCol, modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
+	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", modCol, modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
 	return s
 }
 
@@ -207,7 +207,16 @@ func formatTime(modTime time.Time) string {
 	return modTime.Format("Jan _2  2006")
 }
 
-func getFileType(name string) string {
+func getFileType(entry FileInfo) string {
+	mod := entry.Info.Mode().String()
+	switch mod[0] {
+	case 'l', 'L':
+		return "link"
+	}
+	if strings.ContainsAny(mod, "x") {
+		return "exec"
+	}
+	name := entry.Name
 	tokens := strings.Split(strings.ToLower(name), ".")
 	ext := tokens[len(tokens)-1]
 	switch ext {
