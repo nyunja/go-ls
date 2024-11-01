@@ -130,7 +130,7 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 
 	sizeStr := toString(size)
 
-	s := fmt.Sprintf("%*s %*d %-*s %-*s %*s %*s %s", modCol, modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
+	s := fmt.Sprintf("%*s %*d %-*s %-*s %*s %*s  %s", modCol, modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
 	return s
 }
 
@@ -204,7 +204,7 @@ func formatTime(modTime time.Time) string {
 	if modTime.Year() == now.Year() {
 		return modTime.Format("Jan _2 15:04")
 	}
-	return modTime.Format("Jan _2 2006")
+	return modTime.Format("Jan _2  2006")
 }
 
 func getFileType(name string) string {
