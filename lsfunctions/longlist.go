@@ -79,6 +79,18 @@ func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol, linkCol,
 	if mode&0o100 != 0 {
 		name = "\x1b[32m" + name + "\x1b[0m"
 	}
+	// Format symbolic links
+	if mode&fs.ModeSymlink != 0 {
+		target, err := os.Readlink(info.Name()) // Get target link
+		if err == nil {
+			_, err := os.Stat(target)
+			if err == nil {
+				name += " -> " + target
+			} else {
+				name += " -> " + target + " (Broken link)"
+			}
+		}
+	}
 	modeStr := mode.String()
 	if strings.HasPrefix(mode.String(), "L") {
 		modeStr = "l" + modeStr[1:]
