@@ -63,6 +63,12 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		}
 
 	}
+	if info, err := os.Stat(path); err == nil {
+		if !info.IsDir() {
+			entry := FileInfo{Name: path, Info: info}
+			return []FileInfo{entry}, nil
+		}
+	}
 	dir, err := os.Open(path)
 	if err != nil {
 		return nil, err
