@@ -80,33 +80,10 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 		if strings.HasPrefix(mode.String(), "L") {
 			modeStr = "l" + modeStr[1:]
 		}
-		// target, err := os.Readlink(info.Name()) // Get target link
-		// if err == nil {
-		// 	_, err := os.Stat(target)
-		// 	if err == nil {
-		// 		name += " -> " + target
-		// 	} else {
-		// 		name += " -> " + target + " (Broken link)"
-		// 	}
-		// }
 	case "exec":
 		name = "\x1b[38;5;46m" + name + "\x1b[0m" // Add color green for executables
 	}
 	
-	// Format symbolic links
-	// if mode&fs.ModeSymlink != 0 {
-	// 	target, err := os.Readlink(info.Name()) // Get target link
-	// 	if err == nil {
-	// 		_, err := os.Stat(target)
-	// 		if err == nil {
-	// 			name += " -> " + target
-	// 		} else {
-	// 			name += " -> " + target + " (Broken link)"
-	// 		}
-	// 	}
-	// }
-	
-
 	var owner, group string
 	var linkCount uint64
 
