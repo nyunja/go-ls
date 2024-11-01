@@ -14,6 +14,7 @@ import (
 type FileInfo struct {
 	Name string
 	Info os.FileInfo
+	LinkTarget string
 }
 
 func DisplayLongFormat(entries []FileInfo) {
@@ -79,15 +80,15 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 		if strings.HasPrefix(mode.String(), "L") {
 			modeStr = "l" + modeStr[1:]
 		}
-		target, err := os.Readlink(info.Name()) // Get target link
-		if err == nil {
-			_, err := os.Stat(target)
-			if err == nil {
-				name += " -> " + target
-			} else {
-				name += " -> " + target + " (Broken link)"
-			}
-		}
+		// target, err := os.Readlink(info.Name()) // Get target link
+		// if err == nil {
+		// 	_, err := os.Stat(target)
+		// 	if err == nil {
+		// 		name += " -> " + target
+		// 	} else {
+		// 		name += " -> " + target + " (Broken link)"
+		// 	}
+		// }
 	case "exec":
 		name = "\x1b[32m" + name + "\x1b[0m" // Add color green for executables
 	}
@@ -131,6 +132,9 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 	sizeStr := toString(size)
 
 	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", modCol, modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
+	if entry.LinkTarget != "" {
+		s += " -> " + entry.LinkTarget
+	}
 	return s
 }
 
