@@ -30,6 +30,9 @@ func ListPath(path string, flags Flags) error {
 	if flags.Recursive {
 		for _, entry := range entries {
 			if entry.Info.IsDir() {
+				if entry.Name == ".." || entry.Name == "." {
+					continue
+				}
 				fmt.Println()
 				newPath := filepath.Join(path, entry.Name)
 				fmt.Printf("%s:\n", newPath)
