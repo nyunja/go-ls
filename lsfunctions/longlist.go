@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"os"
 	"os/user"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -80,21 +79,33 @@ func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol, linkCol,
 		name = "\x1b[32m" + name + "\x1b[0m"
 	}
 	// Format symbolic links
-	if mode&fs.ModeSymlink != 0 {
+	// if mode&fs.ModeSymlink != 0 {
+	// 	target, err := os.Readlink(info.Name()) // Get target link
+	// 	if err == nil {
+	// 		_, err := os.Stat(target)
+	// 		if err == nil {
+	// 			name += " -> " + target
+	// 		} else {
+	// 			name += " -> " + target + " (Broken link)"
+	// 		}
+	// 	}
+	// }
+	modeStr := mode.String()
+	if strings.HasPrefix(mode.String(), "L") {
+		modeStr = "l" + modeStr[1:]
 		target, err := os.Readlink(info.Name()) // Get target link
 		if err == nil {
 			_, err := os.Stat(target)
 			if err == nil {
 				name += " -> " + target
+				fmt.Println("Here")
+				os.Exit(1)
 			} else {
 				name += " -> " + target + " (Broken link)"
 			}
 		}
 	}
-	modeStr := mode.String()
-	if strings.HasPrefix(mode.String(), "L") {
-		modeStr = "l" + modeStr[1:]
-	}
+
 	var owner, group string
 	var linkCount uint64
 
@@ -127,7 +138,7 @@ func getColumnWidth(entries []FileInfo) (int, int, int, int, int) {
 	var owner, group string
 	var linkCount uint64
 	sizeCol, groupCol, ownerCol, linkCol, timeCol := 0, 0, 0, 0, 0
-	
+
 	for _, entry := range entries {
 		info := entry.Info
 		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
@@ -186,7 +197,8 @@ func formatTime(modTime time.Time) string {
 }
 
 func getFileType(name string) string {
-	ext := strings.ToLower(filepath.Ext(name))
+	tokens := strings.Split(strings.ToLower(name), ".")
+	ext := tokens[len(tokens)-1]
 	switch ext {
 	case ".txt", ".md", ".log":
 		return "text"
