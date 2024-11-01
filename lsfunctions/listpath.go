@@ -56,6 +56,13 @@ func ListPath(path string, flags Flags) error {
 //   - []FileInfo: A slice of FileInfo structures containing information about the directory entries.
 //   - error: An error if there was a problem reading the directory or its contents.
 func readDir(path string, flags Flags) ([]FileInfo, error) {
+	if info, err := os.Lstat(path); err == nil {
+		if target, err := os.Readlink(path); err == nil {
+			entry := FileInfo{Name: path, Info: info, LinkTarget: target}
+			return []FileInfo{entry}, nil
+		}
+
+	}
 	dir, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -82,7 +89,17 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		if !flags.All && strings.HasPrefix(file.Name(), ".") {
 			continue
 		}
-		entries = append(entries, FileInfo{Name: file.Name(), Info: file})
+		entry := FileInfo{Name: file.Name(), Info: file}
+		mode := file.Mode().String()
+		switch mode[0] {
+		case 'l', 'L':
+			linkTarget, err := os.Readlink(path + file.Name())
+			if err == nil {
+				entry.LinkTarget = linkTarget
+			}
+
+		}
+		entries = append(entries, entry)
 	}
 	sort.SliceStable(entries, func(i, j int) bool {
 		if flags.Time {
