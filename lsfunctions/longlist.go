@@ -79,6 +79,10 @@ func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol, linkCol,
 	if mode&0o100 != 0 {
 		name = "\x1b[32m" + name + "\x1b[0m"
 	}
+	modeStr := mode.String()
+	if strings.HasPrefix(mode.String(), "L") {
+		modeStr = "l" + modeStr[1:]
+	}
 	var owner, group string
 	var linkCount uint64
 
@@ -103,7 +107,7 @@ func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol, linkCol,
 
 	sizeStr := toString(size)
 
-	s := fmt.Sprintf("%s %*d %*s %*s %*s %*s %s", mode, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
+	s := fmt.Sprintf("%s %*d %*s %*s %*s %*s %s", modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
 	return s
 }
 
