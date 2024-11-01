@@ -2,10 +2,8 @@ package lsfunctions
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"os/user"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -16,6 +14,7 @@ import (
 type FileInfo struct {
 	Name string
 	Info os.FileInfo
+	LinkTarget string
 }
 
 func DisplayLongFormat(entries []FileInfo) {
@@ -26,22 +25,28 @@ func DisplayLongFormat(entries []FileInfo) {
 		}
 	}
 	fmt.Printf("total %d\n", totalBlocks/2)
-	sizeCol, ownerCol, groupCol:= getColumnWidth(entries)
+	sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol := getColumnWidth(entries)
 	for _, entry := range entries {
-		fmt.Println(GetLongFormatString(entry.Info, sizeCol, ownerCol, groupCol))
+		fmt.Println(GetLongFormatString(entry, sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol))
 	}
 }
 
-func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol int) string {
+func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol int) string {
+	info := entry.Info
 	mode := info.Mode()
+	modeStr := mode.String()
 	size := info.Size()
 	modTime := info.ModTime()
-	name := info.Name()
+	name := entry.Name
 	if strings.Contains(name, " ") {
 		name = "'" + name + "'"
 	}
+	// Add color blue for directories
+	if info.IsDir() {
+		name = "\x1b[34m" + name + "\x1b[0m"
+	}
 	// Color coding based on file type
-	switch getFileType(name) {
+	switch getFileType(entry) {
 	case "text":
 		name = "\x1b[97m" + name + "\x1b[0m" // White
 	case "pdf":
@@ -70,15 +75,38 @@ func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol int) stri
 		name = "\x1b[91m" + name + "\x1b[0m" // Light Red
 	case "css":
 		name = "\x1b[36m" + name + "\x1b[0m" // Cyan
+	case "link":
+		name = "\x1b[38;5;100m" + name + "\x1b[0m"
+		if strings.HasPrefix(mode.String(), "L") {
+			modeStr = "l" + modeStr[1:]
+		}
+		// target, err := os.Readlink(info.Name()) // Get target link
+		// if err == nil {
+		// 	_, err := os.Stat(target)
+		// 	if err == nil {
+		// 		name += " -> " + target
+		// 	} else {
+		// 		name += " -> " + target + " (Broken link)"
+		// 	}
+		// }
+	case "exec":
+		name = "\x1b[32m" + name + "\x1b[0m" // Add color green for executables
 	}
-	// Add color blue for directories
-	if info.IsDir() {
-		name = "\x1b[34m" + name + "\x1b[0m"
-	}
-	// Add color green for executables
-	if mode&0o100 != 0 {
-		name = "\x1b[32m" + name + "\x1b[0m"
-	}
+	
+	// Format symbolic links
+	// if mode&fs.ModeSymlink != 0 {
+	// 	target, err := os.Readlink(info.Name()) // Get target link
+	// 	if err == nil {
+	// 		_, err := os.Stat(target)
+	// 		if err == nil {
+	// 			name += " -> " + target
+	// 		} else {
+	// 			name += " -> " + target + " (Broken link)"
+	// 		}
+	// 	}
+	// }
+	
+
 	var owner, group string
 	var linkCount uint64
 
@@ -101,44 +129,69 @@ func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol int) stri
 
 	timeString := formatTime(modTime)
 
-	sizeStr := formatSize(size)
+	sizeStr := toString(size)
 
-	s := fmt.Sprintf("%s %2d %*s %*s %*s %s %s", mode, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeString, name)
+	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", modCol, modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
+	if s[0] == 'l' && entry.LinkTarget != "" {
+		s += " -> " + entry.LinkTarget
+	}
 	return s
 }
 
-func getColumnWidth(entries []FileInfo) (int, int, int) {
+func getColumnWidth(entries []FileInfo) (int, int, int, int, int, int) {
 	var owner, group string
-	sizeCol, groupCol, ownerCol := 0, 0, 0
-	
+	var linkCount uint64
+	sizeCol, groupCol, ownerCol, linkCol, timeCol, modCol := 0, 0, 0, 0, 0, 0
+
 	for _, entry := range entries {
 		info := entry.Info
 		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
 			uid := stat.Uid
 			gid := stat.Gid
+			linkCount = stat.Nlink
 			owner = strconv.FormatUint(uint64(uid), 10)
 			group = strconv.FormatUint(uint64(gid), 10)
 		} else {
 			fmt.Printf("error getting syscall info")
-			return sizeCol, ownerCol, groupCol
+			return sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol
+		}
+		if u, err := user.LookupId(owner); err == nil {
+			owner = u.Username
+		}
+		if g, err := user.LookupGroupId(group); err == nil {
+			group = g.Name
+		}
+
+		modStr := info.Mode().String()
+		if len(modStr) > modCol {
+			modCol = len(modStr)
 		}
 
 		if len(owner) > ownerCol {
 			ownerCol = len(owner)
 		}
 		if len(group) > groupCol {
-			ownerCol = len(group)
+			groupCol = len(group)
 		}
-		sizeStr := formatSize(entry.Info.Size())
+		linkStr := toString(linkCount)
+		if len(linkStr) > linkCol {
+			linkCol = len(linkStr)
+		}
+		sizeStr := toString(entry.Info.Size())
 		if len(sizeStr) > sizeCol {
 			sizeCol = len(sizeStr)
 		}
+		timeString := formatTime(info.ModTime())
+		if len(timeString) > timeCol {
+			timeCol = len(timeString)
+		}
+
 	}
-	return sizeCol, ownerCol, groupCol
+	return sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol
 }
 
-func formatSize(size int64) string {
-	return fmt.Sprintf("%d", size)
+func toString(size interface{}) string {
+	return fmt.Sprintf("%v", size)
 }
 
 // formatTime formats a given time based on whether it's in the current year or not.
@@ -155,11 +208,21 @@ func formatTime(modTime time.Time) string {
 	if modTime.Year() == now.Year() {
 		return modTime.Format("Jan _2 15:04")
 	}
-	return modTime.Format("Jan _2 2006")
+	return modTime.Format("Jan _2  2006")
 }
 
-func getFileType(name string) string {
-	ext := strings.ToLower(filepath.Ext(name))
+func getFileType(entry FileInfo) string {
+	mod := entry.Info.Mode().String()
+	switch mod[0] {
+	case 'l', 'L':
+		return "link"
+	}
+	if strings.ContainsAny(mod, "x") {
+		return "exec"
+	}
+	name := entry.Name
+	tokens := strings.Split(strings.ToLower(name), ".")
+	ext := tokens[len(tokens)-1]
 	switch ext {
 	case ".txt", ".md", ".log":
 		return "text"
