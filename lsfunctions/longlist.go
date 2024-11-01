@@ -2,7 +2,6 @@ package lsfunctions
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"os/user"
 	"strconv"
@@ -25,17 +24,18 @@ func DisplayLongFormat(entries []FileInfo) {
 		}
 	}
 	fmt.Printf("total %d\n", totalBlocks/2)
-	sizeCol, ownerCol, groupCol, linkCol, timeCol := getColumnWidth(entries)
+	sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol := getColumnWidth(entries)
 	for _, entry := range entries {
-		fmt.Println(GetLongFormatString(entry.Info, sizeCol, ownerCol, groupCol, linkCol, timeCol))
+		fmt.Println(GetLongFormatString(entry, sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol))
 	}
 }
 
-func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol, linkCol, timeCol int) string {
+func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol int) string {
+	info := entry.Info
 	mode := info.Mode()
 	size := info.Size()
 	modTime := info.ModTime()
-	name := info.Name()
+	name := entry.Name
 	if strings.Contains(name, " ") {
 		name = "'" + name + "'"
 	}
@@ -130,14 +130,14 @@ func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol, linkCol,
 
 	sizeStr := toString(size)
 
-	s := fmt.Sprintf("%s %*d %*s %*s %*s %*s %s", modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
+	s := fmt.Sprintf("%*s %*d %-*s %-*s %*s %*s %s", modCol, modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
 	return s
 }
 
-func getColumnWidth(entries []FileInfo) (int, int, int, int, int) {
+func getColumnWidth(entries []FileInfo) (int, int, int, int, int, int) {
 	var owner, group string
 	var linkCount uint64
-	sizeCol, groupCol, ownerCol, linkCol, timeCol := 0, 0, 0, 0, 0
+	sizeCol, groupCol, ownerCol, linkCol, timeCol, modCol := 0, 0, 0, 0, 0, 0
 
 	for _, entry := range entries {
 		info := entry.Info
@@ -149,14 +149,25 @@ func getColumnWidth(entries []FileInfo) (int, int, int, int, int) {
 			group = strconv.FormatUint(uint64(gid), 10)
 		} else {
 			fmt.Printf("error getting syscall info")
-			return sizeCol, ownerCol, groupCol, linkCol, timeCol
+			return sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol
+		}
+		if u, err := user.LookupId(owner); err == nil {
+			owner = u.Username
+		}
+		if g, err := user.LookupGroupId(group); err == nil {
+			group = g.Name
+		}
+
+		modStr := info.Mode().String()
+		if len(modStr) > modCol {
+			modCol = len(modStr)
 		}
 
 		if len(owner) > ownerCol {
 			ownerCol = len(owner)
 		}
 		if len(group) > groupCol {
-			ownerCol = len(group)
+			groupCol = len(group)
 		}
 		linkStr := toString(linkCount)
 		if len(linkStr) > linkCol {
@@ -172,7 +183,7 @@ func getColumnWidth(entries []FileInfo) (int, int, int, int, int) {
 		}
 
 	}
-	return sizeCol, ownerCol, groupCol, linkCol, timeCol
+	return sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol
 }
 
 func toString(size interface{}) string {
