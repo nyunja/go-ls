@@ -26,13 +26,13 @@ func DisplayLongFormat(entries []FileInfo) {
 		}
 	}
 	fmt.Printf("total %d\n", totalBlocks/2)
-	maxSizeWidth := calculateMaxSizeWidth(entries)
+	sizeCol, ownerCol, groupCol:= getColumnWidth(entries)
 	for _, entry := range entries {
-		fmt.Println(GetLongFormatString(entry.Info, maxSizeWidth))
+		fmt.Println(GetLongFormatString(entry.Info, sizeCol, ownerCol, groupCol))
 	}
 }
 
-func GetLongFormatString(info fs.FileInfo, maxSize int) string {
+func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol int) string {
 	mode := info.Mode()
 	size := info.Size()
 	modTime := info.ModTime()
@@ -103,20 +103,38 @@ func GetLongFormatString(info fs.FileInfo, maxSize int) string {
 
 	sizeStr := formatSize(size)
 
-	s := fmt.Sprintf("%s %2d %-8s %-8s %*s %s %s", mode, linkCount, owner, group, maxSize, sizeStr, timeString, name)
+	s := fmt.Sprintf("%s %2d %*s %*s %*s %s %s", mode, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeString, name)
 	return s
 }
 
-func calculateMaxSizeWidth(entries []FileInfo) int {
-	maxSize := 0
+func getColumnWidth(entries []FileInfo) (int, int, int) {
+	var owner, group string
+	sizeCol, groupCol, ownerCol := 0, 0, 0
+	
 	for _, entry := range entries {
+		info := entry.Info
+		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+			uid := stat.Uid
+			gid := stat.Gid
+			owner = strconv.FormatUint(uint64(uid), 10)
+			group = strconv.FormatUint(uint64(gid), 10)
+		} else {
+			fmt.Printf("error getting syscall info")
+			return sizeCol, ownerCol, groupCol
+		}
 
+		if len(owner) > ownerCol {
+			ownerCol = len(owner)
+		}
+		if len(group) > groupCol {
+			ownerCol = len(group)
+		}
 		sizeStr := formatSize(entry.Info.Size())
-		if len(sizeStr) > maxSize {
-			maxSize = len(sizeStr)
+		if len(sizeStr) > sizeCol {
+			sizeCol = len(sizeStr)
 		}
 	}
-	return maxSize
+	return sizeCol, ownerCol, groupCol
 }
 
 func formatSize(size int64) string {

@@ -14,13 +14,16 @@ func main() {
 		args = []string{"."}
 	}
 	for i, path := range args {
+		if flags.Recursive {
+			fmt.Printf("%s:\n", path)
+		}
 		err := lsfunctions.ListPath(path, flags)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ls: %s: %v\n", path, err)
 		}
 		if i < len(args)-1 {
 			fmt.Println()
-		}
+		} 
 	}
 }
 

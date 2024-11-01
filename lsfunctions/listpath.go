@@ -30,6 +30,9 @@ func ListPath(path string, flags Flags) error {
 	if flags.Recursive {
 		for _, entry := range entries {
 			if entry.Info.IsDir() {
+				if entry.Name == ".." || entry.Name == "." {
+					continue
+				}
 				fmt.Println()
 				newPath := filepath.Join(path, entry.Name)
 				fmt.Printf("%s:\n", newPath)
@@ -64,6 +67,17 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		return nil, err
 	}
 	var entries []FileInfo
+
+	// Add etries for parents directory and current directory
+	if flags.All {
+		if currentInfo, err := os.Stat(path); err == nil {
+			entries = append(entries, FileInfo{Name: ".", Info: currentInfo})
+		}
+		parentDir := getParentDir(path)
+		if parentInfo, err := os.Stat(parentDir); err == nil {
+			entries = append(entries, FileInfo{Name: "..", Info: parentInfo})
+		}
+	}
 	for _, file := range files {
 		if !flags.All && strings.HasPrefix(file.Name(), ".") {
 			continue
@@ -88,6 +102,37 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		}
 	}
 	return entries, nil
+}
+
+
+// getParentDir returns the parent directory path of the given path.
+//
+// It handles various edge cases such as root directory, paths without separators,
+// and paths ending with a separator.
+//
+// Parameters:
+//   - path: A string representing the input path for which to find the parent directory.
+//
+// Returns:
+//   - A string representing the parent directory path.
+//     Returns "/" for the root directory, ".." for paths without separators,
+//     and the appropriate parent path for other cases.
+func getParentDir(path string) string {
+	if path == "/" {
+		return "/"
+	}
+	lastIndexSep := strings.LastIndex(path, "/") 
+	if lastIndexSep == -1 {
+		return ".."
+	}
+	if lastIndexSep == len(path) -1 {
+		path = path[:lastIndexSep]
+		lastIndexSep = strings.LastIndex(path, "/")
+	}
+	if lastIndexSep == 0 {
+		return "/"
+	}
+	return path[:lastIndexSep]
 }
 
 // Clean string to remove -, _, and. from the name.
