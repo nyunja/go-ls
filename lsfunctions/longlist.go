@@ -26,13 +26,13 @@ func DisplayLongFormat(entries []FileInfo) {
 		}
 	}
 	fmt.Printf("total %d\n", totalBlocks/2)
-	sizeCol, ownerCol, groupCol:= getColumnWidth(entries)
+	sizeCol, ownerCol, groupCol, linkCol, timeCol := getColumnWidth(entries)
 	for _, entry := range entries {
-		fmt.Println(GetLongFormatString(entry.Info, sizeCol, ownerCol, groupCol))
+		fmt.Println(GetLongFormatString(entry.Info, sizeCol, ownerCol, groupCol, linkCol, timeCol))
 	}
 }
 
-func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol int) string {
+func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol, linkCol, timeCol int) string {
 	mode := info.Mode()
 	size := info.Size()
 	modTime := info.ModTime()
@@ -101,26 +101,28 @@ func GetLongFormatString(info fs.FileInfo, sizeCol, ownerCol, groupCol int) stri
 
 	timeString := formatTime(modTime)
 
-	sizeStr := formatSize(size)
+	sizeStr := toString(size)
 
-	s := fmt.Sprintf("%s %2d %*s %*s %*s %s %s", mode, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeString, name)
+	s := fmt.Sprintf("%s %*d %*s %*s %*s %*s %s", mode, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
 	return s
 }
 
-func getColumnWidth(entries []FileInfo) (int, int, int) {
+func getColumnWidth(entries []FileInfo) (int, int, int, int, int) {
 	var owner, group string
-	sizeCol, groupCol, ownerCol := 0, 0, 0
+	var linkCount uint64
+	sizeCol, groupCol, ownerCol, linkCol, timeCol := 0, 0, 0, 0, 0
 	
 	for _, entry := range entries {
 		info := entry.Info
 		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
 			uid := stat.Uid
 			gid := stat.Gid
+			linkCount = stat.Nlink
 			owner = strconv.FormatUint(uint64(uid), 10)
 			group = strconv.FormatUint(uint64(gid), 10)
 		} else {
 			fmt.Printf("error getting syscall info")
-			return sizeCol, ownerCol, groupCol
+			return sizeCol, ownerCol, groupCol, linkCol, timeCol
 		}
 
 		if len(owner) > ownerCol {
@@ -129,16 +131,25 @@ func getColumnWidth(entries []FileInfo) (int, int, int) {
 		if len(group) > groupCol {
 			ownerCol = len(group)
 		}
-		sizeStr := formatSize(entry.Info.Size())
+		linkStr := toString(linkCount)
+		if len(linkStr) > linkCol {
+			linkCol = len(linkStr)
+		}
+		sizeStr := toString(entry.Info.Size())
 		if len(sizeStr) > sizeCol {
 			sizeCol = len(sizeStr)
 		}
+		timeString := formatTime(info.ModTime())
+		if len(timeString) > timeCol {
+			timeCol = len(timeString)
+		}
+
 	}
-	return sizeCol, ownerCol, groupCol
+	return sizeCol, ownerCol, groupCol, linkCol, timeCol
 }
 
-func formatSize(size int64) string {
-	return fmt.Sprintf("%d", size)
+func toString(size interface{}) string {
+	return fmt.Sprintf("%v", size)
 }
 
 // formatTime formats a given time based on whether it's in the current year or not.
