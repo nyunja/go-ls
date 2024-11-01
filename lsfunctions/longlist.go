@@ -76,7 +76,7 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 	case "css":
 		name = "\x1b[36m" + name + "\x1b[0m" // Cyan
 	case "link":
-		name = "\x1b[38;5;100m" + name + "\x1b[0m"
+		name = "\x1b[38;5;51m" + name + "\x1b[0m"
 		if strings.HasPrefix(mode.String(), "L") {
 			modeStr = "l" + modeStr[1:]
 		}
@@ -90,7 +90,7 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 		// 	}
 		// }
 	case "exec":
-		name = "\x1b[32m" + name + "\x1b[0m" // Add color green for executables
+		name = "\x1b[38;5;46m" + name + "\x1b[0m" // Add color green for executables
 	}
 	
 	// Format symbolic links
