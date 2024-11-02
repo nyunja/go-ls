@@ -17,6 +17,10 @@ type FileInfo struct {
 	LinkTarget string
 }
 
+type Widths struct {
+	sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol int
+}
+
 func DisplayLongFormat(entries []FileInfo) {
 	var totalBlocks int64
 	for _, entry := range entries {
@@ -25,13 +29,13 @@ func DisplayLongFormat(entries []FileInfo) {
 		}
 	}
 	fmt.Printf("total %d\n", totalBlocks/2)
-	sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol := getColumnWidth(entries)
+	widths := getColumnWidth(entries)
 	for _, entry := range entries {
-		fmt.Println(GetLongFormatString(entry, sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol))
+		fmt.Println(GetLongFormatString(entry, widths))
 	}
 }
 
-func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol int) string {
+func GetLongFormatString(entry FileInfo, widths Widths) string {
 	info := entry.Info
 	mode := info.Mode()
 	modeStr := mode.String()
@@ -108,17 +112,18 @@ func GetLongFormatString(entry FileInfo, sizeCol, ownerCol, groupCol, linkCol, t
 
 	sizeStr := toString(size)
 
-	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", modCol, modeStr, linkCol, linkCount, ownerCol, owner, groupCol, group, sizeCol, sizeStr, timeCol, timeString, name)
+	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", widths.modCol, modeStr, widths.linkCol, linkCount, widths.ownerCol, owner, widths.groupCol, group, widths.sizeCol, sizeStr, widths.timeCol, timeString, name)
 	if s[0] == 'l' && entry.LinkTarget != "" {
 		s += " -> " + entry.LinkTarget
 	}
 	return s
 }
 
-func getColumnWidth(entries []FileInfo) (int, int, int, int, int, int) {
+func getColumnWidth(entries []FileInfo) Widths {
+	var widths Widths
 	var owner, group string
 	var linkCount uint64
-	sizeCol, groupCol, ownerCol, linkCol, timeCol, modCol := 0, 0, 0, 0, 0, 0
+	// sizeCol, groupCol, ownerCol, linkCol, timeCol, modCol := 0, 0, 0, 0, 0, 0
 
 	for _, entry := range entries {
 		info := entry.Info
@@ -130,7 +135,7 @@ func getColumnWidth(entries []FileInfo) (int, int, int, int, int, int) {
 			group = strconv.FormatUint(uint64(gid), 10)
 		} else {
 			fmt.Printf("error getting syscall info")
-			return sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol
+			return widths
 		}
 		if u, err := user.LookupId(owner); err == nil {
 			owner = u.Username
@@ -140,31 +145,31 @@ func getColumnWidth(entries []FileInfo) (int, int, int, int, int, int) {
 		}
 
 		modStr := info.Mode().String()
-		if len(modStr) > modCol {
-			modCol = len(modStr)
+		if len(modStr) > widths.modCol {
+			widths.modCol = len(modStr)
 		}
 
-		if len(owner) > ownerCol {
-			ownerCol = len(owner)
+		if len(owner) > widths.ownerCol {
+			widths.ownerCol = len(owner)
 		}
-		if len(group) > groupCol {
-			groupCol = len(group)
+		if len(group) > widths.groupCol {
+			widths.groupCol = len(group)
 		}
 		linkStr := toString(linkCount)
-		if len(linkStr) > linkCol {
-			linkCol = len(linkStr)
+		if len(linkStr) > widths.linkCol {
+			widths.linkCol = len(linkStr)
 		}
 		sizeStr := toString(entry.Info.Size())
-		if len(sizeStr) > sizeCol {
-			sizeCol = len(sizeStr)
+		if len(sizeStr) > widths.sizeCol {
+			widths.sizeCol = len(sizeStr)
 		}
 		timeString := formatTime(info.ModTime())
-		if len(timeString) > timeCol {
-			timeCol = len(timeString)
+		if len(timeString) > widths.timeCol {
+			widths.timeCol = len(timeString)
 		}
 
 	}
-	return sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol
+	return widths
 }
 
 func toString(size interface{}) string {
