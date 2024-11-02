@@ -21,6 +21,11 @@ type Widths struct {
 	sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol int
 }
 
+type Ugl struct {
+	Owner, Group string
+	LinkCount uint64
+}
+
 func DisplayLongFormat(entries []FileInfo) {
 	var totalBlocks int64
 	for _, entry := range entries {
@@ -29,13 +34,13 @@ func DisplayLongFormat(entries []FileInfo) {
 		}
 	}
 	fmt.Printf("total %d\n", totalBlocks/2)
-	widths := getColumnWidth(entries)
+	widths, ugl := getColumnWidth(entries)
 	for _, entry := range entries {
-		fmt.Println(GetLongFormatString(entry, widths))
+		fmt.Println(GetLongFormatString(entry, widths, ugl))
 	}
 }
 
-func GetLongFormatString(entry FileInfo, widths Widths) string {
+func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
 	info := entry.Info
 	mode := info.Mode()
 	modeStr := mode.String()
@@ -87,40 +92,21 @@ func GetLongFormatString(entry FileInfo, widths Widths) string {
 	case "exec":
 		name = "\x1b[38;5;46m" + name + "\x1b[0m" // Add color green for executables
 	}
-	
-	var owner, group string
-	var linkCount uint64
-
-	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-		uid := stat.Uid
-		gid := stat.Gid
-		linkCount = stat.Nlink
-		owner = strconv.FormatUint(uint64(uid), 10)
-		group = strconv.FormatUint(uint64(gid), 10)
-	} else {
-		fmt.Printf("error getting syscall info")
-		return ""
-	}
-	if u, err := user.LookupId(owner); err == nil {
-		owner = u.Username
-	}
-	if g, err := user.LookupGroupId(group); err == nil {
-		group = g.Name
-	}
 
 	timeString := formatTime(modTime)
 
 	sizeStr := toString(size)
 
-	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", widths.modCol, modeStr, widths.linkCol, linkCount, widths.ownerCol, owner, widths.groupCol, group, widths.sizeCol, sizeStr, widths.timeCol, timeString, name)
+	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", widths.modCol, modeStr, widths.linkCol, ugl.LinkCount, widths.ownerCol, ugl.Owner, widths.groupCol, ugl.Group, widths.sizeCol, sizeStr, widths.timeCol, timeString, name)
 	if s[0] == 'l' && entry.LinkTarget != "" {
 		s += " -> " + entry.LinkTarget
 	}
 	return s
 }
 
-func getColumnWidth(entries []FileInfo) Widths {
+func getColumnWidth(entries []FileInfo) (Widths, Ugl) {
 	var widths Widths
+	var ugl Ugl
 	var owner, group string
 	var linkCount uint64
 	// sizeCol, groupCol, ownerCol, linkCol, timeCol, modCol := 0, 0, 0, 0, 0, 0
@@ -135,7 +121,7 @@ func getColumnWidth(entries []FileInfo) Widths {
 			group = strconv.FormatUint(uint64(gid), 10)
 		} else {
 			fmt.Printf("error getting syscall info")
-			return widths
+			return widths, ugl
 		}
 		if u, err := user.LookupId(owner); err == nil {
 			owner = u.Username
@@ -167,9 +153,12 @@ func getColumnWidth(entries []FileInfo) Widths {
 		if len(timeString) > widths.timeCol {
 			widths.timeCol = len(timeString)
 		}
+		ugl.Group = group
+		ugl.Owner = owner
+		ugl.LinkCount = linkCount
 
 	}
-	return widths
+	return widths, ugl
 }
 
 func toString(size interface{}) string {
