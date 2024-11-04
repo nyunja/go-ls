@@ -14,7 +14,7 @@ func main() {
 		args = []string{"."}
 	}
 	for i, path := range args {
-		if flags.Recursive {
+		if flags.Recursive || len(args) > 1 {
 			fmt.Printf("%s:\n", path)
 		}
 		err := lsfunctions.ListPath(path, flags)
