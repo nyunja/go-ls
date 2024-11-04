@@ -61,9 +61,6 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 			entry := FileInfo{Name: path, Info: info, LinkTarget: target}
 			return []FileInfo{entry}, nil
 		}
-
-	}
-	if info, err := os.Stat(path); err == nil {
 		if !info.IsDir() {
 			entry := FileInfo{Name: path, Info: info}
 			return []FileInfo{entry}, nil
@@ -107,17 +104,10 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		}
 		entries = append(entries, entry)
 	}
-	sort.SliceStable(entries, func(i, j int) bool {
-		if flags.Time {
-			return entries[i].Info.ModTime().After(entries[j].Info.ModTime())
-		}
-		s1 := strings.ToLower(entries[i].Name)
-		s2 := strings.ToLower(entries[j].Name)
-		if cleanName(s1) == cleanName(s2) {
-			return entries[i].Name < entries[j].Name
-		}
-		return cleanName(s1) < cleanName(s2)
-	})
+
+	// Sort entries
+	entries = sortEntries(entries, flags)
+
 	if flags.Reverse {
 		for i := len(entries)/2 - 1; i >= 0; i-- {
 			opp := len(entries) - 1 - i
@@ -156,6 +146,22 @@ func getParentDir(path string) string {
 		return "/"
 	}
 	return path[:lastIndexSep]
+}
+
+// Sort entries
+func sortEntries(entries []FileInfo, flags Flags) []FileInfo {
+	sort.SliceStable(entries, func(i, j int) bool {
+		if flags.Time {
+			return entries[i].Info.ModTime().After(entries[j].Info.ModTime())
+		}
+		s1 := strings.ToLower(entries[i].Name)
+		s2 := strings.ToLower(entries[j].Name)
+		if cleanName(s1) == cleanName(s2) {
+			return entries[i].Name < entries[j].Name
+		}
+		return cleanName(s1) < cleanName(s2)
+	})
+	return entries
 }
 
 // Clean string to remove -, _, and. from the name.
