@@ -7,9 +7,9 @@ import (
 func DisplayShortList(entries []FileInfo) {
 	nameCol := getMaxWidth(entries)
 	for _, entry := range entries {
-		fmt.Printf("%-*s", nameCol, GetShortFormat(entry))
+		fmt.Printf("%-*s\n", nameCol, GetShortFormat(entry))
 	}
-	fmt.Println()
+	// fmt.Println()
 }
 
 func getMaxWidth(entries []FileInfo) int {
