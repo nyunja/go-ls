@@ -5,10 +5,21 @@ import (
 )
 
 func DisplayShortList(entries []FileInfo) {
+	nameCol := getMaxWidth(entries)
 	for _, entry := range entries {
-		fmt.Printf("%-*s", 100, GetShortFormat(entry))
+		fmt.Printf("%-*s", nameCol, GetShortFormat(entry))
 	}
 	fmt.Println()
+}
+
+func getMaxWidth(entries []FileInfo) int {
+	nameCol := 0
+	for _, entry := range entries {
+		if len(entry.Name) > nameCol {
+			nameCol = len(entry.Name)
+		}
+	}
+	return nameCol
 }
 
 func GetShortFormat(entry FileInfo) string {
