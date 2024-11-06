@@ -184,21 +184,67 @@ func getParentDir(path string) string {
 	return path[:lastIndexSep]
 }
 
-// Sort entries
+// Sort entries using quicksort
 func sortEntries(entries []FileInfo, flags Flags) []FileInfo {
-	sort.SliceStable(entries, func(i, j int) bool {
-		if flags.Time {
-			return entries[i].Info.ModTime().After(entries[j].Info.ModTime())
-		}
-		s1 := strings.ToLower(entries[i].Name)
-		s2 := strings.ToLower(entries[j].Name)
-		if cleanName(s1) == cleanName(s2) {
-			return entries[i].Name < entries[j].Name
-		}
-		return cleanName(s1) < cleanName(s2)
-	})
-	return entries
+    quickSort(entries, 0, len(entries)-1, flags)
+    return entries
 }
+
+// quickSort implements the quicksort algorithm
+func quickSort(entries []FileInfo, low, high int, flags Flags) {
+    if low < high {
+        pi := partition(entries, low, high, flags)
+        quickSort(entries, low, pi-1, flags)
+        quickSort(entries, pi+1, high, flags)
+    }
+}
+
+// partition is a helper function for quickSort
+func partition(entries []FileInfo, low, high int, flags Flags) int {
+    pivot := entries[high]
+    i := low - 1
+
+    for j := low; j < high; j++ {
+        if compareEntries(entries[j], pivot, flags) {
+            i++
+            entries[i], entries[j] = entries[j], entries[i]
+        }
+    }
+
+    entries[i+1], entries[high] = entries[high], entries[i+1]
+    return i + 1
+}
+
+// compareEntries compares two FileInfo entries based on the sorting criteria
+func compareEntries(a, b FileInfo, flags Flags) bool {
+    if flags.Time {
+        return a.Info.ModTime().After(b.Info.ModTime())
+    }
+
+    s1 := strings.ToLower(a.Name)
+    s2 := strings.ToLower(b.Name)
+
+    if cleanName(s1) == cleanName(s2) {
+        return a.Name < b.Name
+    }
+    return cleanName(s1) < cleanName(s2)
+}
+
+// // Sort entries
+// func sortEntries(entries []FileInfo, flags Flags) []FileInfo {
+// 	sort.SliceStable(entries, func(i, j int) bool {
+// 		if flags.Time {
+// 			return entries[i].Info.ModTime().After(entries[j].Info.ModTime())
+// 		}
+// 		s1 := strings.ToLower(entries[i].Name)
+// 		s2 := strings.ToLower(entries[j].Name)
+// 		if cleanName(s1) == cleanName(s2) {
+// 			return entries[i].Name < entries[j].Name
+// 		}
+// 		return cleanName(s1) < cleanName(s2)
+// 	})
+// 	return entries
+// }
 
 // Clean string to remove -, _, and. from the name.
 func cleanName(name string) string {
