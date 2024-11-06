@@ -12,8 +12,8 @@ import (
 
 // FileInfo struct to store file information from readDir function
 type FileInfo struct {
-	Name string
-	Info os.FileInfo
+	Name       string
+	Info       os.FileInfo
 	LinkTarget string
 }
 
@@ -23,7 +23,7 @@ type Widths struct {
 
 type Ugl struct {
 	Owner, Group string
-	LinkCount uint64
+	LinkCount    uint64
 }
 
 func DisplayLongFormat(entries []FileInfo) {
@@ -92,6 +92,28 @@ func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
 	case "exec":
 		name = "\x1b[38;5;46m" + name + "\x1b[0m" // Add color green for executables
 	}
+	var linkCount uint64
+	var owner, group string
+
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		uid := stat.Uid
+		gid := stat.Gid
+		linkCount = stat.Nlink
+		owner = strconv.FormatUint(uint64(uid), 10)
+		group = strconv.FormatUint(uint64(gid), 10)
+	} else {
+		fmt.Printf("error getting syscall info")
+		// return widths, ugl
+	}
+	if u, err := user.LookupId(owner); err == nil {
+		owner = u.Username
+	}
+	if g, err := user.LookupGroupId(group); err == nil {
+		group = g.Name
+	}
+	ugl.Owner = owner
+	ugl.Group = group
+	ugl.LinkCount = linkCount
 
 	timeString := formatTime(modTime)
 
