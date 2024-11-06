@@ -8,6 +8,40 @@ import (
 	"strings"
 )
 
+func SortPaths(paths []string) ([]string, int) {
+	nonDirIdx := 0
+	sort.Slice(paths, func(i, j int) bool {
+		pathI, pathJ := paths[i],paths[j]
+		m,n := strings.LastIndex(paths[i], "/"), strings.LastIndex(paths[j], "/")
+		if m == -1 || n == -1 {
+			return false
+		}
+		if m == len(paths[i]) -1 {
+			pathI = pathI[:m]
+			m = strings.LastIndex(pathI, "/")
+		}
+		if n == len(paths[i]) -1 {
+			pathJ = pathJ[:n]
+			n = strings.LastIndex(pathJ, "/")
+		}
+		pathI, pathJ = paths[i][m+1:], paths[j][n+1:]
+        return strings.ToLower(pathI) < strings.ToLower(pathJ)
+    })
+	sort.SliceStable(paths, func(i, j int) bool {
+		infoI, err := os.Lstat(paths[i])
+		// infoJ, err := os.Lstat(paths[j])
+		if err!= nil {
+            return false
+        }
+		if !infoI.IsDir() {
+			nonDirIdx++
+		}
+		return !infoI.IsDir()
+
+	})
+    return paths, nonDirIdx
+
+}
 // listPath lists the contents of a specified directory path based on the given flags.
 //
 // Parameters:
