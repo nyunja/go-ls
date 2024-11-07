@@ -13,21 +13,25 @@ func main() {
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
+
+	
 	paths, idx := lsfunctions.SortPaths(paths)
 	// fmt.Println(flags)
 	// fmt.Println(idx)
 	// fmt.Println(paths)
+
 	for i, path := range paths {
 		if (flags.Recursive && len(paths) > 1) || (i >= idx) {
-			fmt.Printf("%s:\n", path)
+			if i > 0{
+				fmt.Println()
+				fmt.Printf("%s:\n", path)
+			}
 		}
 		err := lsfunctions.ListPath(path, flags)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ls: %s: %v\n", path, err)
 		}
-		if i < len(paths)-1 {
-			fmt.Println()
-		}
+
 	}
 }
 
