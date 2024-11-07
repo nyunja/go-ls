@@ -26,11 +26,20 @@ type Ugl struct {
 	LinkCount    uint64
 }
 
+/*func major(dev uint64)uin64 {
+	return (dev >> 8) & 0xFF
+}
+
+func minor(dev uint64)uint64 {
+	return dev & 0xFF
+}
+*/
 func DisplayLongFormat(entries []FileInfo) {
 	var totalBlocks int64
 	for _, entry := range entries {
 		if stat, ok := entry.Info.Sys().(*syscall.Stat_t); ok {
 			totalBlocks += stat.Blocks
+			// stat.Rdev
 		}
 	}
 	fmt.Printf("total %d\n", totalBlocks/2)
