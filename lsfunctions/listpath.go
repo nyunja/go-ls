@@ -102,18 +102,20 @@ func ListPath(path string, flags Flags) error {
 //   - []FileInfo: A slice of FileInfo structures containing information about the directory entries.
 //   - error: An error if there was a problem reading the directory or its contents.
 func readDir(path string, flags Flags) ([]FileInfo, error) {
-	if flags.Long {
-		if info, err := os.Lstat(path); err == nil {
+	if info, err := os.Lstat(path); err == nil {
+		if flags.Long {
 			if target, err := os.Readlink(path); err == nil {
 				entry := FileInfo{Name: path, Info: info, LinkTarget: target}
 				return []FileInfo{entry}, nil
 			}
-			if !info.IsDir() {
-				entry := FileInfo{Name: path, Info: info}
-				return []FileInfo{entry}, nil
-			}
+		}
+
+		if !info.IsDir() {
+			entry := FileInfo{Name: path, Info: info}
+			return []FileInfo{entry}, nil
 		}
 	}
+
 	dir, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -188,8 +190,12 @@ func getParentDir(path string) string {
 		path = path[:lastIndexSep]
 		lastIndexSep = strings.LastIndex(path, "/")
 	}
+
 	if lastIndexSep == 0 {
 		return "/"
+	}
+	if lastIndexSep == -1 {
+		return ".."
 	}
 	return path[:lastIndexSep]
 }
