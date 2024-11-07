@@ -33,12 +33,25 @@ func SortPaths(paths []string) ([]string, int) {
 		if err!= nil {
             return false
         }
-		if !infoI.IsDir() {
-			nonDirIdx++
-		}
+		// if !infoI.IsDir() {
+		// 	nonDirIdx++
+		// }
 		return !infoI.IsDir()
 
 	})
+	for i := range paths{
+		// if paths[i] == ".." || paths[i] == "." {
+        //     continue
+        // }
+        info, err := os.Lstat(paths[i])
+        if err!= nil {
+            continue
+        }
+        if info.IsDir() {
+            nonDirIdx = i
+			break
+        }
+	}
     return paths, nonDirIdx
 
 }
