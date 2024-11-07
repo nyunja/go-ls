@@ -18,7 +18,7 @@ func main() {
 	// fmt.Println(idx)
 	// fmt.Println(paths)
 	for i, path := range paths {
-		if flags.Recursive && len(paths) > 1 || i >= idx  {
+		if (flags.Recursive && len(paths) > 1) || (i >= idx) {
 			fmt.Printf("%s:\n", path)
 		}
 		err := lsfunctions.ListPath(path, flags)
@@ -27,10 +27,9 @@ func main() {
 		}
 		if i < len(paths)-1 {
 			fmt.Println()
-		} 
+		}
 	}
 }
-
 
 // func calcSize(s int64) string {
 // 	// unit := "B"

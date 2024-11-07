@@ -4,57 +4,57 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 )
 
 func SortPaths(paths []string) ([]string, int) {
-	nonDirIdx := 0
-	sort.Slice(paths, func(i, j int) bool {
-		pathI, pathJ := paths[i],paths[j]
-		m,n := strings.LastIndex(paths[i], "/"), strings.LastIndex(paths[j], "/")
-		if m == -1 || n == -1 {
-			return false
+	// Step 1: Bubble sort by the last component, alphabetically and case-insensitively
+	for k := 0; k < len(paths)-1; k++ {
+		for j := 0; j < len(paths)-1-k; j++ {
+			// Remove trailing slashes for comparison only
+			pathI := strings.TrimSuffix(paths[j], "/")
+			pathJ := strings.TrimSuffix(paths[j+1], "/")
+			// Compare alphabetically
+			if strings.ToLower(pathI) > strings.ToLower(pathJ) {
+				paths[j], paths[j+1] = paths[j+1], paths[j]
+			}
 		}
-		if m == len(paths[i]) -1 {
-			pathI = pathI[:m]
-			m = strings.LastIndex(pathI, "/")
-		}
-		if n == len(paths[i]) -1 {
-			pathJ = pathJ[:n]
-			n = strings.LastIndex(pathJ, "/")
-		}
-		pathI, pathJ = paths[i][m+1:], paths[j][n+1:]
-        return strings.ToLower(pathI) < strings.ToLower(pathJ)
-    })
-	sort.SliceStable(paths, func(i, j int) bool {
-		infoI, err := os.Lstat(paths[i])
-		// infoJ, err := os.Lstat(paths[j])
-		if err!= nil {
-            return false
-        }
-		// if !infoI.IsDir() {
-		// 	nonDirIdx++
-		// }
-		return !infoI.IsDir()
-
-	})
-	for i := range paths{
-		// if paths[i] == ".." || paths[i] == "." {
-        //     continue
-        // }
-        info, err := os.Lstat(paths[i])
-        if err!= nil {
-            continue
-        }
-        if info.IsDir() {
-            nonDirIdx = i
-			break
-        }
 	}
-    return paths, nonDirIdx
 
+	// Step 2: Bubble sort to move directories to the back while preserving order
+	for k := 0; k < len(paths)-1; k++ {
+		for j := 0; j < len(paths)-1-k; j++ {
+			infoI, errI := os.Lstat(paths[j])
+			infoJ, errJ := os.Lstat(paths[j+1])
+
+			if errI != nil || errJ != nil {
+				continue // Ignore errors
+			}
+
+			// Move directories to the back
+			if infoI.IsDir() && !infoJ.IsDir() {
+				paths[j], paths[j+1] = paths[j+1], paths[j] // Swap
+			}
+		}
+	}
+
+	// Step 3: Find the index of the first non-directory
+	nonDirIdx := len(paths) // default bondary for files and directories
+	for i, path := range paths {
+		info, err := os.Lstat(path)
+		if err != nil {
+			continue
+		}
+		if !info.IsDir() {
+
+			nonDirIdx = i
+			break
+		}
+	}
+
+	return paths, nonDirIdx
 }
+
 // listPath lists the contents of a specified directory path based on the given flags.
 //
 // Parameters:
@@ -149,7 +149,6 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 			if err == nil {
 				entry.LinkTarget = linkTarget
 			}
-
 		}
 		entries = append(entries, entry)
 	}
@@ -165,7 +164,6 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 	}
 	return entries, nil
 }
-
 
 // getParentDir returns the parent directory path of the given path.
 //
@@ -183,11 +181,11 @@ func getParentDir(path string) string {
 	if path == "/" {
 		return "/"
 	}
-	lastIndexSep := strings.LastIndex(path, "/") 
+	lastIndexSep := strings.LastIndex(path, "/")
 	if lastIndexSep == -1 {
 		return ".."
 	}
-	if lastIndexSep == len(path) -1 {
+	if lastIndexSep == len(path)-1 {
 		path = path[:lastIndexSep]
 		lastIndexSep = strings.LastIndex(path, "/")
 	}
@@ -199,48 +197,48 @@ func getParentDir(path string) string {
 
 // Sort entries using quicksort
 func sortEntries(entries []FileInfo, flags Flags) []FileInfo {
-    quickSort(entries, 0, len(entries)-1, flags)
-    return entries
+	quickSort(entries, 0, len(entries)-1, flags)
+	return entries
 }
 
 // quickSort implements the quicksort algorithm
 func quickSort(entries []FileInfo, low, high int, flags Flags) {
-    if low < high {
-        pi := partition(entries, low, high, flags)
-        quickSort(entries, low, pi-1, flags)
-        quickSort(entries, pi+1, high, flags)
-    }
+	if low < high {
+		pi := partition(entries, low, high, flags)
+		quickSort(entries, low, pi-1, flags)
+		quickSort(entries, pi+1, high, flags)
+	}
 }
 
 // partition is a helper function for quickSort
 func partition(entries []FileInfo, low, high int, flags Flags) int {
-    pivot := entries[high]
-    i := low - 1
+	pivot := entries[high]
+	i := low - 1
 
-    for j := low; j < high; j++ {
-        if compareEntries(entries[j], pivot, flags) {
-            i++
-            entries[i], entries[j] = entries[j], entries[i]
-        }
-    }
+	for j := low; j < high; j++ {
+		if compareEntries(entries[j], pivot, flags) {
+			i++
+			entries[i], entries[j] = entries[j], entries[i]
+		}
+	}
 
-    entries[i+1], entries[high] = entries[high], entries[i+1]
-    return i + 1
+	entries[i+1], entries[high] = entries[high], entries[i+1]
+	return i + 1
 }
 
 // compareEntries compares two FileInfo entries based on the sorting criteria
 func compareEntries(a, b FileInfo, flags Flags) bool {
-    if flags.Time {
-        return a.Info.ModTime().After(b.Info.ModTime())
-    }
+	if flags.Time {
+		return a.Info.ModTime().After(b.Info.ModTime())
+	}
 
-    s1 := strings.ToLower(a.Name)
-    s2 := strings.ToLower(b.Name)
+	s1 := strings.ToLower(a.Name)
+	s2 := strings.ToLower(b.Name)
 
-    if cleanName(s1) == cleanName(s2) {
-        return a.Name < b.Name
-    }
-    return cleanName(s1) < cleanName(s2)
+	if cleanName(s1) == cleanName(s2) {
+		return a.Name < b.Name
+	}
+	return cleanName(s1) < cleanName(s2)
 }
 
 // // Sort entries
@@ -261,10 +259,10 @@ func compareEntries(a, b FileInfo, flags Flags) bool {
 
 // Clean string to remove -, _, and. from the name.
 func cleanName(name string) string {
-    return strings.Map(func(r rune) rune {
-        if r == '-' || r == '_' || r == '.' {
-            return -1
-        }
-        return r
-    }, name)
+	return strings.Map(func(r rune) rune {
+		if r == '-' || r == '_' || r == '.' {
+			return -1
+		}
+		return r
+	}, name)
 }
