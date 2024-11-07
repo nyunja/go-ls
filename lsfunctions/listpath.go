@@ -16,7 +16,7 @@ func SortPaths(paths []string) ([]string, int) {
 			pathJ := strings.TrimSuffix(paths[j+1], "/")
 			// Compare alphabetically
 			if strings.ToLower(pathI) > strings.ToLower(pathJ) {
-				paths[j], paths[j+1] = paths[j+1], paths[j]
+				paths[j], paths[j+1] = paths[j+1], paths[j] // Swap
 			}
 		}
 	}
@@ -39,14 +39,13 @@ func SortPaths(paths []string) ([]string, int) {
 	}
 
 	// Step 3: Find the index of the first non-directory
-	nonDirIdx := len(paths) // default bondary for files and directories
+	nonDirIdx := len(paths) // Default to the end if no non-directories are found
 	for i, path := range paths {
 		info, err := os.Lstat(path)
 		if err != nil {
 			continue
 		}
-		if !info.IsDir() {
-
+		if info.IsDir() {
 			nonDirIdx = i
 			break
 		}
