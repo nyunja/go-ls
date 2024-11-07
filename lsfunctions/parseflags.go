@@ -20,7 +20,7 @@ type Flags struct {
 //   - parsedArgs: A slice of strings containing the non-flag arguments.
 func ParseFlags(args []string) (flags Flags, parsedArgs []string) {
 	for _, arg := range args {
-		if len(arg) > 1 && arg[0] == '-' {
+		if arg[0] == '-' && len(arg) > 1 {
 			switch arg {
 			case "--reverse":
 				flags.Reverse = true
