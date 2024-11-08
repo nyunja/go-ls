@@ -102,7 +102,6 @@ func ListPath(path string, flags Flags) error {
 //   - []FileInfo: A slice of FileInfo structures containing information about the directory entries.
 //   - error: An error if there was a problem reading the directory or its contents.
 func readDir(path string, flags Flags) ([]FileInfo, error) {
-
 	if info, err := os.Lstat(path); err == nil {
 		if flags.Long {
 			if target, err := os.Readlink(path); err == nil {
@@ -133,6 +132,7 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		if currentInfo, err := os.Stat(path); err == nil {
 			entries = append(entries, FileInfo{Name: ".", Info: currentInfo})
 		}
+
 		parentDir := getParentDir(path)
 		if parentInfo, err := os.Stat(parentDir); err == nil {
 			entries = append(entries, FileInfo{Name: "..", Info: parentInfo})
@@ -178,22 +178,16 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 //   - A string representing the parent directory path.
 //     Returns "/" for the root directory, ".." for paths without separators,
 //     and the appropriate parent path for other cases.
+
+
+//Use filepath.Dir: The filepath.Dir function in Go’s path/filepath package simplifies getting the parent directory, 
+//handling edge cases like trailing slashes and root directories. This can replace most of your custom logic.
 func getParentDir(path string) string {
-	if path == "/" {
-		return "/"
-	}
-	lastIndexSep := strings.LastIndex(path, "/")
-	if lastIndexSep == -1 {
-		return ".."
-	}
-	if lastIndexSep == len(path)-1 {
-		path = path[:lastIndexSep]
-		lastIndexSep = strings.LastIndex(path, "/")
-	}
-	if lastIndexSep == 0 {
-		return "/"
-	}
-	return path[:lastIndexSep]
+	
+	cleanedPath := filepath.Clean(path)
+
+	
+	return filepath.Dir(cleanedPath)
 }
 
 // Sort entries using quicksort
