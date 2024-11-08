@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 )
 
 func SortPaths(paths []string) ([]string, int) {
@@ -145,11 +144,6 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		}
 		entry := FileInfo{Name: file.Name(), Info: file}
 		// Get the Rdev for device files
-		if file.Mode()&os.ModeDevice != 0 {
-			if stat, ok := file.Sys().(syscall.Stat_t); ok {
-				entry.Rdev = uint64(stat.Rdev)
-			}
-		}
 		mode := file.Mode().String()
 		switch mode[0] {
 		case 'l', 'L':
