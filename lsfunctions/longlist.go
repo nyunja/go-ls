@@ -15,6 +15,7 @@ type FileInfo struct {
 	Name       string
 	Info       os.FileInfo
 	LinkTarget string
+	Rdev       uint64
 }
 
 type Widths struct {
