@@ -22,10 +22,11 @@ func main() {
 
 	for i, path := range paths {
 		if (flags.Recursive && len(paths) > 1) || (i >= idx) {
-			if i > 0{
+			if len(paths) != 1 {
 				fmt.Println()
 				fmt.Printf("%s:\n", path)
 			}
+
 		}
 		err := lsfunctions.ListPath(path, flags)
 		if err != nil {
