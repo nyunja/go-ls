@@ -178,10 +178,6 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 //   - A string representing the parent directory path.
 //     Returns "/" for the root directory, ".." for paths without separators,
 //     and the appropriate parent path for other cases.
-
-
-//Use filepath.Dir: The filepath.Dir function in Go’s path/filepath package simplifies getting the parent directory, 
-//handling edge cases like trailing slashes and root directories. This can replace most of your custom logic.
 func getParentDir(path string) string {
 	if path == "/" {
 		return "/"
@@ -249,22 +245,6 @@ func compareEntries(a, b FileInfo, flags Flags) bool {
 	}
 	return cleanName(s1) < cleanName(s2)
 }
-
-// // Sort entries
-// func sortEntries(entries []FileInfo, flags Flags) []FileInfo {
-// 	sort.SliceStable(entries, func(i, j int) bool {
-// 		if flags.Time {
-// 			return entries[i].Info.ModTime().After(entries[j].Info.ModTime())
-// 		}
-// 		s1 := strings.ToLower(entries[i].Name)
-// 		s2 := strings.ToLower(entries[j].Name)
-// 		if cleanName(s1) == cleanName(s2) {
-// 			return entries[i].Name < entries[j].Name
-// 		}
-// 		return cleanName(s1) < cleanName(s2)
-// 	})
-// 	return entries
-// }
 
 // Clean string to remove -, _, and. from the name.
 func cleanName(name string) string {
