@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-
-
 func major(dev uint64) uint64 {
 	return (dev >> 8) & 0xff
 }
@@ -74,12 +72,12 @@ func getTotalBlocks(entries []FileInfo) TotalBlocks {
 }
 
 func colorName(entry Entry) Entry {
-	name := entry.Mode
-	if strings.HasPrefix(name, "l") {
+	mod := entry.Mode
+	if strings.HasPrefix(mod, "l") {
 		entry.Name = "\033[38;5;01;34m" + entry.Name + "\033[0m"
 		return entry
 	}
-	switch name[0] {
+	switch mod[0] {
 	case 'd':
 		if strings.Contains(entry.Mode, "t") {
 			entry.Mode = swapT(entry.Mode)
@@ -98,8 +96,82 @@ func colorName(entry Entry) Entry {
 	if len(entry.Mode) != 10 {
 		entry.Mode = "b" + entry.Mode
 	}
+	// 	// Color coding based on file type
+	switch getFileType(entry) {
+	case "text":
+		entry.Name = "\x1b[97m" + entry.Name + "\x1b[0m" // White
+	case "pdf":
+		entry.Name = "\x1b[91m" + entry.Name + "\x1b[0m" // Light Red
+	case "word":
+		entry.Name = "\x1b[94m" + entry.Name + "\x1b[0m" // Light Blue
+	case "excel":
+		entry.Name = "\x1b[92m" + entry.Name + "\x1b[0m" // Light Green
+	case "powerpoint":
+		entry.Name = "\x1b[93m" + entry.Name + "\x1b[0m" // Light Yellow
+	case "archive":
+		entry.Name = "\x1b[31m" + entry.Name + "\x1b[0m" // Red
+	case "audio":
+		entry.Name = "\x1b[96m" + entry.Name + "\x1b[0m" // Light Cyan
+	case "video":
+		entry.Name = "\x1b[95m" + entry.Name + "\x1b[0m" // Light Magenta
+	case "image":
+		entry.Name = "\x1b[35m" + entry.Name + "\x1b[0m" // Magenta
+	case "go":
+		entry.Name= "\x1b[36m" + entry.Name + "\x1b[0m" // Cyan
+	case "python":
+		entry.Name = "\x1b[33m" + entry.Name + "\x1b[0m" // Yellow
+	case "javascript":
+		entry.Name = "\x1b[33m" + entry.Name + "\x1b[0m" // Yellow
+	case "html":
+		entry.Name = "\x1b[91m" + entry.Name + "\x1b[0m" // Light Red
+	case "css":
+		entry.Name = "\x1b[36m" + entry.Name + "\x1b[0m" // Cyan
+	case "exec":
+		entry.Name = "\x1b[38;5;46m" + entry.Name + "\x1b[0m" // Add color green for executables
+	}
 
 	return entry
+}
+
+func getFileType(entry Entry) string {
+	mod := entry.Mode
+
+	if strings.ContainsAny(mod, "x") {
+		return "exec"
+	}
+	name := entry.Name
+	tokens := strings.Split(strings.ToLower(name), ".")
+	ext := tokens[len(tokens)-1]
+	switch ext {
+	case ".txt", ".md", ".log":
+		return "text"
+	case ".pdf":
+		return "pdf"
+	case ".doc", ".docx":
+		return "word"
+	case ".xls", ".xlsx":
+		return "excel"
+	case ".ppt", ".pptx":
+		return "powerpoint"
+	case ".zip", ".tar", ".gz", ".7z", "deb":
+		return "archive"
+	case ".mp3", ".wav", ".flac":
+		return "audio"
+	case ".mp4", ".avi", ".mkv":
+		return "video"
+	case ".jpg", ".jpeg", ".png", ".gif":
+		return "image"
+	case ".py":
+		return "python"
+	case ".js":
+		return "javascript"
+	case ".html", ".htm":
+		return "html"
+	case ".css":
+		return "css"
+	default:
+		return "other"
+	}
 }
 
 func processEntries(entries []FileInfo) ([]Entry, Widths) {
@@ -343,7 +415,7 @@ func formatTime(modTime time.Time) string {
 	return modTime.Format("Jan _2  2006")
 }
 
-func getFileType(entry FileInfo) string {
+func getFileTypeShort(entry FileInfo) string {
 	mod := entry.Info.Mode().String()
 	switch mod[0] {
 	case 'l', 'L':
@@ -386,3 +458,5 @@ func getFileType(entry FileInfo) string {
 		return "other"
 	}
 }
+
+
