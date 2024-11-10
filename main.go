@@ -13,8 +13,7 @@ func main() {
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
-
-	
+	// Sort paths alphabetically and case-insensitively
 	paths, idx := lsfunctions.SortPaths(paths)
 
 	for i, path := range paths {
@@ -23,7 +22,6 @@ func main() {
 				fmt.Println()
 				fmt.Printf("%s:\n", path)
 			}
-
 		}
 		err := lsfunctions.ListPath(path, flags)
 		if err != nil {
