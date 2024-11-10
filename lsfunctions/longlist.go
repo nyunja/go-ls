@@ -46,18 +46,18 @@ func minor(dev uint64) uint64 {
 }
 
 func DisplayLongFormat(entries []FileInfo) {
-	var totalBlocks int64
-	for _, entry := range entries {
-		if stat, ok := entry.Info.Sys().(*syscall.Stat_t); ok {
-			totalBlocks += stat.Blocks
-			// stat.Rdev
-		}
+	t := getTotalBlocks(entries)
+	if ShowTotals {
+		fmt.Printf("total %d\n", t)
 	}
-	fmt.Printf("total %d\n", totalBlocks/2)
-	widths, ugl := getColumnWidth(entries)
-	for _, entry := range entries {
-		fmt.Println(GetLongFormatString(entry, widths, ugl))
+	// widths, ugl := getColumnWidth(entries)
+	newEntries, w := processEntries(entries)
+	for _, entry := range newEntries {
+		fmt.Println(GetLongFormatString2(entry, w))
 	}
+	// for _, entry := range entries {
+	// fmt.Println(GetLongFormatString(entry, widths, ugl))
+	// }
 }
 
 func formatName(s string) string {
@@ -203,6 +203,7 @@ func GetLongFormatString2(e Entry, w Widths) string {
 	}
 	return s
 }
+
 // func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
 // 	info := entry.Info
 // 	mode := info.Mode()
