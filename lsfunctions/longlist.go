@@ -88,6 +88,16 @@ func swapT(s string) string {
 	return string(res)
 }
 
+func getTotalBlocks(entries []FileInfo) TotalBlocks {
+	var t TotalBlocks
+	for _, entry := range entries {
+		if stat, ok := entry.Info.Sys().(*syscall.Stat_t); ok {
+			t += TotalBlocks(stat.Blocks)
+		}
+	}
+	return t / 2
+}
+
 func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
 	info := entry.Info
 	mode := info.Mode()
