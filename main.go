@@ -4,20 +4,18 @@ import (
 	"fmt"
 	"os"
 
-	"my-ls/lsfunctions"
+	ls "my-ls/lsfunctions"
 )
 
 func main() {
 	// Parse flags from command line
-	flags, paths := lsfunctions.ParseFlags(os.Args[1:])
+	flags, paths := ls.ParseFlags(os.Args[1:])
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
 
-	
-	paths, idx := lsfunctions.SortPaths(paths)
-	// fmt.Println(flags)
-	// fmt.Println(idx)
+	paths, idx := ls.SortPaths(paths)
+	// fmt.Println(flags, idx)
 	// fmt.Println(paths)
 
 	for i, path := range paths {
@@ -26,17 +24,14 @@ func main() {
 				fmt.Println()
 				fmt.Printf("%s:\n", path)
 			}
-
+			if i > idx && !ls.ShowTotals {
+				ls.ShowTotals = true
+			}
 		}
-		err := lsfunctions.ListPath(path, flags)
+		err := ls.ListPath(path, flags)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ls: %s: %v\n", path, err)
 		}
 
 	}
 }
-
-// func calcSize(s int64) string {
-// 	// unit := "B"
-// 	return fmt.Sprintf("%v", s)
-// }
