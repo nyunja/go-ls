@@ -71,6 +71,23 @@ func formatName(s string) string {
 	return s
 }
 
+func swapT(s string) string {
+	if len(s) <= 1 {
+		return s
+	}
+	res := []rune{}
+	for i, ch := range s {
+		if ch == 't' {
+			continue
+		} else if i == len(s)-1 {
+			res = append(res, 't')
+		} else {
+			res = append(res, ch)
+		}
+	}
+	return string(res)
+}
+
 func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
 	info := entry.Info
 	mode := info.Mode()
