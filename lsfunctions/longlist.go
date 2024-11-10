@@ -18,9 +18,9 @@ type FileInfo struct {
 }
 
 type Entry struct {
-	Name, Mode, User, Owner, Group, Type, 
-	LinkTarget, LinkCount, Size, Minor,Time string
-	IsDirectory                                      bool
+	Name, Mode, User, Owner, Group, Type,
+	LinkTarget, LinkCount, Size, Minor, Time string
+	IsDirectory bool
 }
 
 type TotalBlocks int64
@@ -58,6 +58,17 @@ func DisplayLongFormat(entries []FileInfo) {
 	for _, entry := range entries {
 		fmt.Println(GetLongFormatString(entry, widths, ugl))
 	}
+}
+
+func formatName(s string) string {
+	if strings.Contains(s, " ") {
+		if strings.ContainsAny(s, "'") {
+			s = fmt.Sprintf(`"%s"`, s)
+		} else {
+			s = fmt.Sprintf(`'%s'`, s)
+		}
+	}
+	return s
 }
 
 func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
