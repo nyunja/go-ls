@@ -15,8 +15,17 @@ type FileInfo struct {
 	Name       string
 	Info       os.FileInfo
 	LinkTarget string
-	Rdev       uint64
 }
+
+type Entry struct {
+	Name, Mode, User, Owner, Group, Type, 
+	LinkTarget, LinkCount, Size, Minor,Time string
+	IsDirectory                                      bool
+}
+
+type TotalBlocks int64
+
+var ShowTotals bool
 
 type Widths struct {
 	sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol int
@@ -27,21 +36,21 @@ type Ugl struct {
 	LinkCount    uint64
 }
 
-/*func major(dev uint64)uin64 {
-	return (dev >> 8) & 0xFF
-}
+/*
+	func major(dev uint64)uin64 {
+		return (dev >> 8) & 0xFF
+	}
 
-func minor(dev uint64)uint64 {
-	return dev & 0xFF
-}
+	func minor(dev uint64)uint64 {
+		return dev & 0xFF
+	}
 */
 func DisplayLongFormat(entries []FileInfo) {
 	var totalBlocks int64
 	for _, entry := range entries {
 		if stat, ok := entry.Info.Sys().(*syscall.Stat_t); ok {
 			totalBlocks += stat.Blocks
-			entry.Rdev = stat.Rdev
-			// fmt.Println(entry.Rdev)
+			// stat.Rdev
 		}
 	}
 	fmt.Printf("total %d\n", totalBlocks/2)
@@ -128,30 +137,13 @@ func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
 
 	timeString := formatTime(modTime)
 
-	sizeStr := fmt.Sprintf("%d", size)
-	if mode&os.ModeDevice != 0 {
-		if stat, ok := entry.Info.Sys().(*syscall.Stat_t); ok {
-			entry.Rdev = stat.Rdev
-		}
-		major := major(entry.Rdev)
-		minor := minor(entry.Rdev)
-		sizeStr = fmt.Sprintf("%d, %d", minor, major)
-	}
+	sizeStr := toString(size)
 
 	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", widths.modCol, modeStr, widths.linkCol, ugl.LinkCount, widths.ownerCol, ugl.Owner, widths.groupCol, ugl.Group, widths.sizeCol, sizeStr, widths.timeCol, timeString, name)
 	if s[0] == 'l' && entry.LinkTarget != "" {
 		s += " -> " + entry.LinkTarget
 	}
 	return s
-}
-
-func major(dev uint64) uint64 {
-	// fmt.Println("here", dev)
-	return (dev >> 7) & 0xff
-}
-
-func minor(dev uint64) uint64 {
-	return dev & 0xff
 }
 
 func getColumnWidth(entries []FileInfo) (Widths, Ugl) {
@@ -206,6 +198,7 @@ func getColumnWidth(entries []FileInfo) (Widths, Ugl) {
 		ugl.Group = group
 		ugl.Owner = owner
 		ugl.LinkCount = linkCount
+
 	}
 	return widths, ugl
 }
