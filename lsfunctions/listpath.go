@@ -7,17 +7,26 @@ import (
 	"strings"
 )
 
+func getPath(s string) string {
+	l := strings.LastIndex(s, "/")
+	if l == -1 {
+        return s
+    }
+	return s[l+1:]
+}
 func SortPaths(paths []string) ([]string, int) {
 	// Step 1: Bubble sort by the last component, alphabetically and case-insensitively
 	for k := 0; k < len(paths)-1; k++ {
 		for j := 0; j < len(paths)-1-k; j++ {
 			// Remove trailing slashes for comparison only
-			pathI := strings.TrimSuffix(paths[j], "/")
-			pathJ := strings.TrimSuffix(paths[j+1], "/")
+			pathI := getPath(paths[j])
+			pathJ := getPath(paths[j+1])
+			// fmt.Printf("before: %s %s\n", pathI, pathJ)
 			// Compare alphabetically
 			if strings.ToLower(pathI) > strings.ToLower(pathJ) {
 				paths[j], paths[j+1] = paths[j+1], paths[j] // Swap
 			}
+			// fmt.Printf("after: %v %s, %s\n", paths, pathI, pathJ)
 		}
 	}
 
