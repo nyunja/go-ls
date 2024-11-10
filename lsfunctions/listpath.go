@@ -178,10 +178,6 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 //   - A string representing the parent directory path.
 //     Returns "/" for the root directory, ".." for paths without separators,
 //     and the appropriate parent path for other cases.
-
-
-//Use filepath.Dir: The filepath.Dir function in Go’s path/filepath package simplifies getting the parent directory, 
-//handling edge cases like trailing slashes and root directories. This can replace most of your custom logic.
 func getParentDir(path string) string {
 	if path == "/" {
 		return "/"
