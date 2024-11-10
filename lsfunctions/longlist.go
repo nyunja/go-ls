@@ -290,66 +290,66 @@ func GetLongFormatString2(e Entry, w Widths) string {
 // 	return s
 // }
 
-func getColumnWidth(entries []FileInfo) (Widths, Ugl) {
-	var widths Widths
-	var ugl Ugl
-	var owner, group string
-	var linkCount uint64
-	// sizeCol, groupCol, ownerCol, linkCol, timeCol, modCol := 0, 0, 0, 0, 0, 0
+// func getColumnWidth(entries []FileInfo) (Widths, Ugl) {
+// 	var widths Widths
+// 	var ugl Ugl
+// 	var owner, group string
+// 	var linkCount uint64
+// 	// sizeCol, groupCol, ownerCol, linkCol, timeCol, modCol := 0, 0, 0, 0, 0, 0
 
-	for _, entry := range entries {
-		info := entry.Info
-		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-			uid := stat.Uid
-			gid := stat.Gid
-			linkCount = stat.Nlink
-			owner = strconv.FormatUint(uint64(uid), 10)
-			group = strconv.FormatUint(uint64(gid), 10)
-		} else {
-			fmt.Printf("error getting syscall info")
-			return widths, ugl
-		}
-		if u, err := user.LookupId(owner); err == nil {
-			owner = u.Username
-		}
-		if g, err := user.LookupGroupId(group); err == nil {
-			group = g.Name
-		}
+// 	for _, entry := range entries {
+// 		info := entry.Info
+// 		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+// 			uid := stat.Uid
+// 			gid := stat.Gid
+// 			linkCount = stat.Nlink
+// 			owner = strconv.FormatUint(uint64(uid), 10)
+// 			group = strconv.FormatUint(uint64(gid), 10)
+// 		} else {
+// 			fmt.Printf("error getting syscall info")
+// 			return widths, ugl
+// 		}
+// 		if u, err := user.LookupId(owner); err == nil {
+// 			owner = u.Username
+// 		}
+// 		if g, err := user.LookupGroupId(group); err == nil {
+// 			group = g.Name
+// 		}
 
-		modStr := info.Mode().String()
-		if len(modStr) > widths.modCol {
-			widths.modCol = len(modStr)
-		}
+// 		modStr := info.Mode().String()
+// 		if len(modStr) > widths.modCol {
+// 			widths.modCol = len(modStr)
+// 		}
 
-		if len(owner) > widths.ownerCol {
-			widths.ownerCol = len(owner)
-		}
-		if len(group) > widths.groupCol {
-			widths.groupCol = len(group)
-		}
-		linkStr := toString(linkCount)
-		if len(linkStr) > widths.linkCol {
-			widths.linkCol = len(linkStr)
-		}
-		sizeStr := toString(entry.Info.Size())
-		if len(sizeStr) > widths.sizeCol {
-			widths.sizeCol = len(sizeStr)
-		}
-		timeString := formatTime(info.ModTime())
-		if len(timeString) > widths.timeCol {
-			widths.timeCol = len(timeString)
-		}
-		ugl.Group = group
-		ugl.Owner = owner
-		ugl.LinkCount = linkCount
+// 		if len(owner) > widths.ownerCol {
+// 			widths.ownerCol = len(owner)
+// 		}
+// 		if len(group) > widths.groupCol {
+// 			widths.groupCol = len(group)
+// 		}
+// 		linkStr := toString(linkCount)
+// 		if len(linkStr) > widths.linkCol {
+// 			widths.linkCol = len(linkStr)
+// 		}
+// 		sizeStr := toString(entry.Info.Size())
+// 		if len(sizeStr) > widths.sizeCol {
+// 			widths.sizeCol = len(sizeStr)
+// 		}
+// 		timeString := formatTime(info.ModTime())
+// 		if len(timeString) > widths.timeCol {
+// 			widths.timeCol = len(timeString)
+// 		}
+// 		ugl.Group = group
+// 		ugl.Owner = owner
+// 		ugl.LinkCount = linkCount
 
-	}
-	return widths, ugl
-}
+// 	}
+// 	return widths, ugl
+// }
 
-func toString(size interface{}) string {
-	return fmt.Sprintf("%v", size)
-}
+// func toString(size interface{}) string {
+// 	return fmt.Sprintf("%v", size)
+// }
 
 // formatTime formats a given time based on whether it's in the current year or not.
 // For times in the current year, it returns the format "Jan _2 15:04".
