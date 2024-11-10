@@ -15,6 +15,7 @@ type FileInfo struct {
 	Name       string
 	Info       os.FileInfo
 	LinkTarget string
+	Rdev       uint64
 }
 
 type Entry struct {
@@ -28,7 +29,7 @@ type TotalBlocks int64
 var ShowTotals bool
 
 type Widths struct {
-	sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol int
+	sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol, minorCol int
 }
 
 type Ugl struct {
@@ -36,15 +37,14 @@ type Ugl struct {
 	LinkCount    uint64
 }
 
-/*
-	func major(dev uint64)uin64 {
-		return (dev >> 8) & 0xFF
-	}
+func major(dev uint64) uint64 {
+	return (dev >> 8) & 0xff
+}
 
-	func minor(dev uint64)uint64 {
-		return dev & 0xFF
-	}
-*/
+func minor(dev uint64) uint64 {
+	return dev & 0xff
+}
+
 func DisplayLongFormat(entries []FileInfo) {
 	var totalBlocks int64
 	for _, entry := range entries {
@@ -125,6 +125,70 @@ func colorName(entry Entry) Entry {
 	}
 
 	return entry
+}
+
+func processEntries(entries []FileInfo) ([]Entry, Widths) {
+	var newEntries []Entry
+	var w Widths
+	for _, entry := range entries {
+		var f Entry
+		info := entry.Info
+		mode := info.Mode()
+		f.Name = formatName(entry.Name)
+		f.Mode = mode.String()
+		if strings.HasPrefix(f.Mode, "L") {
+			f.Mode = "l" + f.Mode[1:]
+		}
+		f.IsDirectory = info.IsDir()
+		f.LinkTarget = entry.LinkTarget
+		f.Time = formatTime(info.ModTime())
+		// Get size string
+		f.Size = fmt.Sprintf("%d", info.Size())
+		if mode&os.ModeDevice != 0 {
+			if stat, ok := entry.Info.Sys().(*syscall.Stat_t); ok {
+				entry.Rdev = stat.Rdev
+			}
+			major := major(entry.Rdev)
+			minor := minor(entry.Rdev)
+			f.Size = fmt.Sprintf("%d", major)
+			f.Minor = fmt.Sprintf("%d,", minor)
+		}
+		var owner, group string
+
+		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+			uid := stat.Uid
+			gid := stat.Gid
+			f.LinkCount = fmt.Sprintf("%d", stat.Nlink)
+			owner = strconv.FormatUint(uint64(uid), 10)
+			group = strconv.FormatUint(uint64(gid), 10)
+		} else {
+			fmt.Printf("error getting syscall info")
+			// return widths, ugl
+		}
+		if u, err := user.LookupId(owner); err == nil {
+			f.Owner = u.Username
+		}
+		if g, err := user.LookupGroupId(group); err == nil {
+			f.Group = g.Name
+		}
+		f = colorName(f)
+		w.modCol = getMax(w.modCol, len(f.Mode))
+		w.groupCol = getMax(w.groupCol, len(f.Group))
+		w.ownerCol = getMax(w.ownerCol, len(f.Owner))
+		w.sizeCol = getMax(w.sizeCol, len(f.Size))
+		w.minorCol = getMax(w.minorCol, len(f.Minor))
+		w.timeCol = getMax(w.timeCol, len(f.Time))
+		w.linkCol = getMax(w.linkCol, len(f.LinkCount))
+		newEntries = append(newEntries, f)
+	}
+	return newEntries, w
+}
+
+func getMax(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
