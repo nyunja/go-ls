@@ -71,7 +71,7 @@ func GetShortFormat(entry FileInfo) string {
 		return "\x1b[34m" + name + "\x1b[0m"
 	}
 	// Color coding based on file type
-	switch getFileType(entry) {
+	switch getFileTypeShort(entry) {
 	case "text":
 		name = "\x1b[97m" + name + "\x1b[0m" // White
 	case "pdf":
@@ -107,3 +107,4 @@ func GetShortFormat(entry FileInfo) string {
 	}
 	return name
 }
+
