@@ -191,91 +191,103 @@ func getMax(a, b int) int {
 	return b
 }
 
-func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
-	info := entry.Info
-	mode := info.Mode()
-	modeStr := mode.String()
-	size := info.Size()
-	modTime := info.ModTime()
-	name := entry.Name
-	if strings.Contains(name, " ") {
-		name = "'" + name + "'"
-	}
-	// Add color blue for directories
-	if info.IsDir() {
-		name = "\x1b[34m" + name + "\x1b[0m"
-	}
-	// Color coding based on file type
-	switch getFileType(entry) {
-	case "text":
-		name = "\x1b[97m" + name + "\x1b[0m" // White
-	case "pdf":
-		name = "\x1b[91m" + name + "\x1b[0m" // Light Red
-	case "word":
-		name = "\x1b[94m" + name + "\x1b[0m" // Light Blue
-	case "excel":
-		name = "\x1b[92m" + name + "\x1b[0m" // Light Green
-	case "powerpoint":
-		name = "\x1b[93m" + name + "\x1b[0m" // Light Yellow
-	case "archive":
-		name = "\x1b[31m" + name + "\x1b[0m" // Red
-	case "audio":
-		name = "\x1b[96m" + name + "\x1b[0m" // Light Cyan
-	case "video":
-		name = "\x1b[95m" + name + "\x1b[0m" // Light Magenta
-	case "image":
-		name = "\x1b[35m" + name + "\x1b[0m" // Magenta
-	case "go":
-		name = "\x1b[36m" + name + "\x1b[0m" // Cyan
-	case "python":
-		name = "\x1b[33m" + name + "\x1b[0m" // Yellow
-	case "javascript":
-		name = "\x1b[33m" + name + "\x1b[0m" // Yellow
-	case "html":
-		name = "\x1b[91m" + name + "\x1b[0m" // Light Red
-	case "css":
-		name = "\x1b[36m" + name + "\x1b[0m" // Cyan
-	case "link":
-		name = "\x1b[38;5;51m" + name + "\x1b[0m"
-		if strings.HasPrefix(mode.String(), "L") {
-			modeStr = "l" + modeStr[1:]
-		}
-	case "exec":
-		name = "\x1b[38;5;46m" + name + "\x1b[0m" // Add color green for executables
-	}
-	var linkCount uint64
-	var owner, group string
-
-	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-		uid := stat.Uid
-		gid := stat.Gid
-		linkCount = stat.Nlink
-		owner = strconv.FormatUint(uint64(uid), 10)
-		group = strconv.FormatUint(uint64(gid), 10)
+func GetLongFormatString2(e Entry, w Widths) string {
+	s := ""
+	if w.minorCol == 0 {
+		s = fmt.Sprintf("%-*s %*s %-*s %-*s %*s %*s %s", w.modCol, e.Mode, w.linkCol, e.LinkCount, w.ownerCol, e.Owner, w.groupCol, e.Group, w.sizeCol, e.Size, w.timeCol, e.Time, e.Name)
 	} else {
-		fmt.Printf("error getting syscall info")
-		// return widths, ugl
+		s = fmt.Sprintf("%-*s %*s %-*s %-*s %*s %*s %*s %s", w.modCol, e.Mode, w.linkCol, e.LinkCount, w.ownerCol, e.Owner, w.groupCol, e.Group, w.minorCol, e.Minor, w.sizeCol, e.Size, w.timeCol, e.Time, e.Name)
 	}
-	if u, err := user.LookupId(owner); err == nil {
-		owner = u.Username
-	}
-	if g, err := user.LookupGroupId(group); err == nil {
-		group = g.Name
-	}
-	ugl.Owner = owner
-	ugl.Group = group
-	ugl.LinkCount = linkCount
-
-	timeString := formatTime(modTime)
-
-	sizeStr := toString(size)
-
-	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", widths.modCol, modeStr, widths.linkCol, ugl.LinkCount, widths.ownerCol, ugl.Owner, widths.groupCol, ugl.Group, widths.sizeCol, sizeStr, widths.timeCol, timeString, name)
-	if s[0] == 'l' && entry.LinkTarget != "" {
-		s += " -> " + entry.LinkTarget
+	if e.Mode[0] == 'l' && e.LinkTarget != "" {
+		s += " -> " + e.LinkTarget
 	}
 	return s
 }
+// func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
+// 	info := entry.Info
+// 	mode := info.Mode()
+// 	modeStr := mode.String()
+// 	size := info.Size()
+// 	modTime := info.ModTime()
+// 	name := entry.Name
+// 	if strings.Contains(name, " ") {
+// 		name = "'" + name + "'"
+// 	}
+// 	// Add color blue for directories
+// 	if info.IsDir() {
+// 		name = "\x1b[34m" + name + "\x1b[0m"
+// 	}
+// 	// Color coding based on file type
+// 	switch getFileType(entry) {
+// 	case "text":
+// 		name = "\x1b[97m" + name + "\x1b[0m" // White
+// 	case "pdf":
+// 		name = "\x1b[91m" + name + "\x1b[0m" // Light Red
+// 	case "word":
+// 		name = "\x1b[94m" + name + "\x1b[0m" // Light Blue
+// 	case "excel":
+// 		name = "\x1b[92m" + name + "\x1b[0m" // Light Green
+// 	case "powerpoint":
+// 		name = "\x1b[93m" + name + "\x1b[0m" // Light Yellow
+// 	case "archive":
+// 		name = "\x1b[31m" + name + "\x1b[0m" // Red
+// 	case "audio":
+// 		name = "\x1b[96m" + name + "\x1b[0m" // Light Cyan
+// 	case "video":
+// 		name = "\x1b[95m" + name + "\x1b[0m" // Light Magenta
+// 	case "image":
+// 		name = "\x1b[35m" + name + "\x1b[0m" // Magenta
+// 	case "go":
+// 		name = "\x1b[36m" + name + "\x1b[0m" // Cyan
+// 	case "python":
+// 		name = "\x1b[33m" + name + "\x1b[0m" // Yellow
+// 	case "javascript":
+// 		name = "\x1b[33m" + name + "\x1b[0m" // Yellow
+// 	case "html":
+// 		name = "\x1b[91m" + name + "\x1b[0m" // Light Red
+// 	case "css":
+// 		name = "\x1b[36m" + name + "\x1b[0m" // Cyan
+// 	case "link":
+// 		name = "\x1b[38;5;51m" + name + "\x1b[0m"
+// 		if strings.HasPrefix(mode.String(), "L") {
+// 			modeStr = "l" + modeStr[1:]
+// 		}
+// 	case "exec":
+// 		name = "\x1b[38;5;46m" + name + "\x1b[0m" // Add color green for executables
+// 	}
+// 	var linkCount uint64
+// 	var owner, group string
+
+// 	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+// 		uid := stat.Uid
+// 		gid := stat.Gid
+// 		linkCount = stat.Nlink
+// 		owner = strconv.FormatUint(uint64(uid), 10)
+// 		group = strconv.FormatUint(uint64(gid), 10)
+// 	} else {
+// 		fmt.Printf("error getting syscall info")
+// 		// return widths, ugl
+// 	}
+// 	if u, err := user.LookupId(owner); err == nil {
+// 		owner = u.Username
+// 	}
+// 	if g, err := user.LookupGroupId(group); err == nil {
+// 		group = g.Name
+// 	}
+// 	ugl.Owner = owner
+// 	ugl.Group = group
+// 	ugl.LinkCount = linkCount
+
+// 	timeString := formatTime(modTime)
+
+// 	sizeStr := toString(size)
+
+// 	s := fmt.Sprintf("%-*s %*d %-*s %-*s %*s %*s  %s", widths.modCol, modeStr, widths.linkCol, ugl.LinkCount, widths.ownerCol, ugl.Owner, widths.groupCol, ugl.Group, widths.sizeCol, sizeStr, widths.timeCol, timeString, name)
+// 	if s[0] == 'l' && entry.LinkTarget != "" {
+// 		s += " -> " + entry.LinkTarget
+// 	}
+// 	return s
+// }
 
 func getColumnWidth(entries []FileInfo) (Widths, Ugl) {
 	var widths Widths
