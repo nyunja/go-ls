@@ -98,6 +98,35 @@ func getTotalBlocks(entries []FileInfo) TotalBlocks {
 	return t / 2
 }
 
+func colorName(entry Entry) Entry {
+	name := entry.Mode
+	if strings.HasPrefix(name, "l") {
+		entry.Name = "\033[38;5;01;34m" + entry.Name + "\033[0m"
+		return entry
+	}
+	switch name[0] {
+	case 'd':
+		if strings.Contains(entry.Mode, "t") {
+			entry.Mode = swapT(entry.Mode)
+		}
+		entry.Name = "\033[1;34m" + entry.Name + "\033[0m"
+	case 'D':
+		entry.Mode = entry.Mode[1:]
+		if len(entry.Mode) != 10 {
+			entry.Mode = "b" + entry.Mode
+		}
+		if len(entry.Mode) != 10 {
+			entry.Mode = entry.Mode + "-"
+		}
+		entry.Name = "\033[1;33m" + entry.Name + "\033[0m"
+	}
+	if len(entry.Mode) != 10 {
+		entry.Mode = "b" + entry.Mode
+	}
+
+	return entry
+}
+
 func GetLongFormatString(entry FileInfo, widths Widths, ugl Ugl) string {
 	info := entry.Info
 	mode := info.Mode()
