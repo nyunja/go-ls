@@ -15,8 +15,6 @@ func main() {
 	}
 
 	paths, idx := ls.SortPaths(paths)
-	// fmt.Println(flags, idx)
-	// fmt.Println(paths)
 
 	for i, path := range paths {
 		if (flags.Recursive && len(paths) > 1) || (i >= idx) {
@@ -24,7 +22,7 @@ func main() {
 				fmt.Println()
 				fmt.Printf("%s:\n", path)
 			}
-			if i > idx && !ls.ShowTotals {
+			if i >= idx && !ls.ShowTotals {
 				ls.ShowTotals = true
 			}
 		}
@@ -32,6 +30,5 @@ func main() {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ls: %s: %v\n", path, err)
 		}
-
 	}
 }
