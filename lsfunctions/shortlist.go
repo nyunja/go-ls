@@ -2,10 +2,11 @@ package lsfunctions
 
 import (
 	"fmt"
+	"io"
 	"strings"
 )
 
-func DisplayShortList(e []FileInfo) {
+func DisplayShortList(w io.Writer, e []FileInfo) {
 	// Process entries to create type []Entry
 	entries, _ := processEntries(e)
 	var fileNameEntries []string
@@ -59,9 +60,9 @@ func DisplayShortList(e []FileInfo) {
 	for _, row := range columns {
 		for i, name := range row {
 			padding := columnWidths[i] - len(name) + 2 // Add extra space between columns
-			fmt.Print(name + strings.Repeat(" ", padding))
+			fmt.Fprint(w, name + strings.Repeat(" ", padding))
 		}
-		fmt.Println()
+		fmt.Fprintln(w)
 	}
 }
 
