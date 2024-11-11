@@ -1,9 +1,40 @@
 package lsfunctions
 
 import (
+	"os"
 	"reflect"
 	"testing"
+	"time"
 )
+
+// mockFileInfo implements os.FileInfo for testing purposes
+type mockFileInfo struct {
+	name    string
+	size    int64
+	mode    os.FileMode
+	modTime time.Time
+	isDir   bool
+	sys     interface{}
+}
+
+func (m mockFileInfo) Name() string       { return m.name }
+func (m mockFileInfo) Size() int64        { return m.size }
+func (m mockFileInfo) Mode() os.FileMode  { return m.mode }
+func (m mockFileInfo) ModTime() time.Time { return m.modTime }
+func (m mockFileInfo) IsDir() bool        { return m.mode.IsDir() }
+func (m mockFileInfo) Sys() interface{}   { return m.sys }
+
+// Mock a []FileInfo for testing
+var mockEntries = []FileInfo{
+	{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0100644, modTime: time.Now()}},
+	{Name: "ted", Info: mockFileInfo{name: "ted", mode: 040755, modTime: time.Now()}},
+	{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0644, modTime: time.Now()}},
+}
+var sortedEntries = []FileInfo{
+	{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0644, modTime: time.Now()}},
+	{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0100644, modTime: time.Now()}},
+	{Name: "ted", Info: mockFileInfo{name: "ted", mode: 040755, modTime: time.Now()}},
+}
 
 func TestSortPaths(t *testing.T) {
 	type args struct {
@@ -86,6 +117,31 @@ func Test_cleanName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := cleanName(tt.args); got != tt.want {
 				t.Errorf("cleanName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_sortEntries(t *testing.T) {
+	type args struct {
+		entries []FileInfo
+		flags   Flags
+	}
+	tests := []struct {
+		name string
+		args args
+		want []FileInfo
+	}{
+		{name: "test 1", args: args{entries: mockEntries, flags: Flags{}}, want: sortedEntries},
+
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := sortEntries(tt.args.entries, tt.args.flags)
+			for i, entry := range got {
+				if!reflect.DeepEqual(entry.Name, tt.want[i].Name) {
+                    t.Errorf("sortEntries() entry.Name = %v, want %v", entry.Name, tt.want[i].Name)
+                }
 			}
 		})
 	}
