@@ -6,34 +6,27 @@ func colorName(entry Entry) Entry {
 	// Define color codes
 	const (
 		reset      = "\033[0m"
-		boldBlue   = "\033[38;5;01;34m"
-		boldYellow = "\033[38;5;01;33m"
-		red        = "\033[31m"
-		cyan       = "\033[36m"
-		green      = "\033[38;5;46m"
+		turqoise = "\033[1;38;2;42;161;179m"
+		boldBlue   = "\033[1;38;5;01;34m"
+		boldYellow = "\033[1;38;2;162;115;76m"
+		blackBack = "\033[40m"
+		red        = "\033[1;31m"
+		cyan       = "\033[1;36m"
+		green      = "\033[1;38;2;39;169;105m"
 	)
 	// Color map for different file types
 	colors := map[string]string{
-		"text":       "\x1b[97m",
-		"pdf":        "\x1b[91m", // Light Red
-		"word":       "\x1b[94m", // Light Blue
-		"excel":      "\x1b[92m", // Light Green
-		"powerpoint": "\x1b[93m", // Light Yellow
 		"archive":    red,
-		"audio":      "\x1b[96m", // Light Cyan
-		"video":      "\x1b[95m", // Light Magenta
-		"image":      "\x1b[35m", // Magenta
-		"go":         cyan,
-		"python":     "\x1b[33m", // Yellow
-		"javascript": "\x1b[33m", // Yellow
-		"html":       "\x1b[91m", // Light Red
+		"audio":      "\x1b[1;96m", // Light Cyan
+		"image":      "\x1b[1;35m", // Magenta
+		"crd":       "\x1b[1;38;5;8m",
 		"css":        cyan,
 		"exec":       green,
 	}
 
 	// Handle symbolic links
 	if entry.Mode[0] == 'l' {
-		entry.Name = "\033[38;5;01;34m" + entry.Name + "\033[0m"
+		entry.Name = turqoise+ entry.Name + reset
 		return entry
 	}
 	// Handle directories
@@ -47,7 +40,7 @@ func colorName(entry Entry) Entry {
 	// Handle device files
 	if entry.Mode[0] == 'D' {
 		entry.Mode = "b" + strings.TrimPrefix(entry.Mode, "D")
-		entry.Name = boldYellow + entry.Name + reset
+		entry.Name = boldYellow + blackBack + entry.Name + reset
 		return entry
 	}
 
