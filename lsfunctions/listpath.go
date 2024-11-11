@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+// getPath extracts the last component from a given path string.//+
+// If the path does not contain any slashes, it returns the original string.//+
+////+
+// Parameters://+
+//   - s: A string representing the input path.//+
+////+
+// Returns://+
+//   - A string representing the last component of the input path.//+
 func getPath(s string) string {
 	l := strings.LastIndex(s, "/")
 	if l == -1 {
@@ -14,6 +22,21 @@ func getPath(s string) string {
     }
 	return s[l+1:]
 }
+
+// SortPaths sorts a slice of file paths and separates directories from non-directories.//+
+////+
+// This function performs the following operations://+
+// 1. Sorts paths alphabetically by their last component, case-insensitively.//+
+// 2. Moves directories to the end of the slice while preserving their relative order.//+
+// 3. Finds the index of the first directory in the sorted slice.//+
+////+
+// Parameters://+
+//   - paths: A slice of strings representing file and directory paths to be sorted.//+
+////+
+// Returns://+
+//   - []string: The sorted slice of paths with directories moved to the end.//+
+//   - int: The index of the first directory in the sorted slice. If no directories//+
+//     are present, this will be equal to the length of the slice.//+
 func SortPaths(paths []string) ([]string, int) {
 	// Step 1: Bubble sort by the last component, alphabetically and case-insensitively
 	for k := 0; k < len(paths)-1; k++ {
@@ -62,6 +85,7 @@ func SortPaths(paths []string) ([]string, int) {
 
 	return paths, nonDirIdx
 }
+
 
 // listPath lists the contents of a specified directory path based on the given flags.
 //
@@ -210,7 +234,15 @@ func getParentDir(path string) string {
 	return path[:lastIndexSep]
 }
 
-// Sort entries using quicksort
+// sortEntries sorts a slice of FileInfo entries based on the provided flags.
+// It uses the quickSort algorithm to perform the sorting operation.
+
+// Parameters:
+//   - entries: A slice of FileInfo structures representing the directory entries to be sorted.//+
+//   - flags: A Flags struct containing boolean flags that determine the sorting criteria.//+
+
+// Returns:
+//   - []FileInfo: A sorted slice of FileInfo structures.
 func sortEntries(entries []FileInfo, flags Flags) []FileInfo {
 	quickSort(entries, 0, len(entries)-1, flags)
 	return entries
