@@ -13,7 +13,7 @@ func main() {
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
-
+	// Sort paths alphabetically and case-insensitively
 	paths, idx := ls.SortPaths(paths)
 
 	for i, path := range paths {
