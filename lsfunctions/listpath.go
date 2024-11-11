@@ -78,9 +78,9 @@ func ListPath(path string, flags Flags) error {
 		return err
 	}
 	if flags.Long {
-		DisplayLongFormat(entries)
+		DisplayLongFormat(os.Stdout, entries)
 	} else {
-		DisplayShortList(entries)
+		DisplayShortList(os.Stdout, entries)
 	}
 	if flags.Recursive {
 		for _, entry := range entries {
