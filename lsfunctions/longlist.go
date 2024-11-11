@@ -40,21 +40,29 @@ func formatName(s string) string {
 	return s
 }
 
+// swapT modifies a string by removing all 't' characters except for the last one,
+// which is moved to the end of the string if it's not already there.
+//
+// Parameters:
+//   - s: The input string to be modified.
+//
+// Returns:
+//   - string: The modified string with 't' characters removed and potentially one 't' added at the end.
 func swapT(s string) string {
-	if len(s) <= 1 {
-		return s
-	}
-	res := []rune{}
-	for i, ch := range s {
-		if ch == 't' {
-			continue
-		} else if i == len(s)-1 {
-			res = append(res, 't')
-		} else {
-			res = append(res, ch)
-		}
-	}
-	return string(res)
+    if len(s) <= 1 {
+        return s
+    }
+    res := []rune{}
+    for i, ch := range s {
+        if ch == 't' {
+            continue
+        } else if i == len(s)-1 {
+            res = append(res, 't')
+        } else {
+            res = append(res, ch)
+        }
+    }
+    return string(res)
 }
 
 func getTotalBlocks(entries []FileInfo) TotalBlocks {
