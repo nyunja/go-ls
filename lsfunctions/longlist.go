@@ -23,14 +23,10 @@ func DisplayLongFormat(entries []FileInfo) {
 	if ShowTotals {
 		fmt.Printf("total %d\n", t)
 	}
-	// widths, ugl := getColumnWidth(entries)
 	newEntries, w := processEntries(entries)
 	for _, entry := range newEntries {
 		fmt.Println(GetLongFormatString2(entry, w))
 	}
-	// for _, entry := range entries {
-	// fmt.Println(GetLongFormatString(entry, widths, ugl))
-	// }
 }
 
 func formatName(s string) string {
