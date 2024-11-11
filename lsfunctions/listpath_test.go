@@ -46,3 +46,47 @@ func Test_getPath(t *testing.T) {
 		})
 	}
 }
+
+func Test_readDir(t *testing.T) {
+	type args struct {
+		path  string
+		flags Flags
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    int
+		wantErr bool
+	}{
+		{name: "test 1", args: args{path: "../ted", flags: Flags{Long: true}}, want: 3, wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := readDir(tt.args.path, tt.args.flags)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("readDir() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(len(got), tt.want) {
+				t.Errorf("readDir() = %v, want %v", len(got), tt.want)
+			}
+		})
+	}
+}
+
+func Test_cleanName(t *testing.T) {
+	tests := []struct {
+		name string
+		args string
+		want string
+	}{
+		{name: "test 1", args: "_t-ed", want: "ted"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := cleanName(tt.args); got != tt.want {
+				t.Errorf("cleanName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
