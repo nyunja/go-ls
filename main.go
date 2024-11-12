@@ -21,12 +21,14 @@ func main() {
 	paths, idx := ls.SortPaths(paths)
 
 	for i, path := range paths {
-		if (flags.Recursive && len(paths) > 1) || (i >= idx) {
-			if len(paths) != 1 {
-				fmt.Println()
+		if i >= idx {
+			if flags.Recursive && len(paths) >= 1 {
+				if len(paths) != 1 {
+					fmt.Println()
+				}
 				fmt.Printf("%s:\n", path)
 			}
-			if i >= idx && !ls.ShowTotals {
+			if !ls.ShowTotals {
 				ls.ShowTotals = true
 			}
 		}
