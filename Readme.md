@@ -45,7 +45,7 @@ Examples:
 
 To clone the project, use:
 ```sh
-git clone https://github.com/yourusername/my-ls.git
+git clone https://learn.zone01kisumu.ke/git/johnotieno0/my-ls-1.git
 ```
 ```sh
 cd my-ls
