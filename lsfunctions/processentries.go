@@ -17,7 +17,7 @@ func processEntries(entries []FileInfo) ([]Entry, Widths) {
 		var f Entry
 		info := entry.Info
 		mode := info.Mode()
-		f.Name = formatName(entry.Name)
+		f.Name = addQuotes(entry.Name)
 		f.Mode = mode.String()
 		if strings.HasPrefix(f.Mode, "L") {
 			f.Mode = "l" + f.Mode[1:]
@@ -126,15 +126,24 @@ func getTotalBlocks(entries []FileInfo) TotalBlocks {
 	return t / 2
 }
 
-func formatName(s string) string {
-	if strings.Contains(s, " ") {
-		if strings.ContainsAny(s, "'") {
-			s = fmt.Sprintf(`"%s"`, s)
-		} else {
-			s = fmt.Sprintf(`'%s'`, s)
-		}
+func addQuotes(s string) string {
+	if strings.Contains(s, " ") || hasSpecialChar(s){
+		s = fmt.Sprintf(`"%s"`, s)
 	}
 	return s
+}
+
+func hasSpecialChar(s string) bool {
+	if len(s) == 0 {
+        return false
+    }
+	specialChars := []rune{ '[','#', ']', '{', '}', '|', '\\', ':', ';', '<', '>', ',', '?', '!', '@', '$', '%', '^', '&', '*', '(', ')', '~', '`', '"', '\'', '=', '+', '/'}
+	for _, ch := range specialChars {
+        if strings.ContainsRune(s, ch) {
+            return true
+        }
+    }
+    return false
 }
 
 func major(dev uint64) uint64 {
