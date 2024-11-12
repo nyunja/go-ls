@@ -3,7 +3,6 @@ package lsfunctions
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -114,7 +113,7 @@ func ListPath(path string, flags Flags) error {
 					continue
 				}
 				fmt.Println()
-				newPath := filepath.Join(path, entry.Name)
+				newPath := path + "/" + entry.Name
 				fmt.Printf("%s:\n", newPath)
 				if err := ListPath(newPath, flags); err != nil {
 					fmt.Fprintf(os.Stderr, "ls: %s: %v\n", newPath, err)
@@ -145,10 +144,10 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 			}
 		}
 		if !info.IsDir() {
-          if _, err = os.Readlink(path); err != nil {
-			entry := FileInfo{Name: path, Info: info}
-			return []FileInfo{entry}, nil
-		  }
+			if _, err = os.Readlink(path); err != nil {
+				entry := FileInfo{Name: path, Info: info}
+				return []FileInfo{entry}, nil
+			}
 		}
 	}
 
@@ -184,7 +183,8 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		mode := file.Mode().String()
 		switch mode[0] {
 		case 'l', 'L':
-			linkTarget, err := os.Readlink(path + file.Name())
+			newPath := path + "/" + file.Name()
+			linkTarget, err := os.Readlink(newPath)
 			if err == nil {
 				entry.LinkTarget = linkTarget
 			}
@@ -296,7 +296,7 @@ func compareEntries(a, b FileInfo, flags Flags) bool {
 func cleanName(name string) string {
 	return strings.Map(func(r rune) rune {
 		switch r {
-		case '-', '_','.', '[','#', ']', '{', '}', '|', '\\', ':', ';', '<', '>', ',', '?', '!', '@', '$', '%', '^', '&', '*', '(', ')', '~', '`', '"', '\'', '=', '+', '/':
+		case '-', '_', '.', '[', '#', ']', '{', '}', '|', '\\', ':', ';', '<', '>', ',', '?', '!', '@', '$', '%', '^', '&', '*', '(', ')', '~', '`', '"', '\'', '=', '+', '/':
 			return -1
 		}
 		return r
