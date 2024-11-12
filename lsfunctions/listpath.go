@@ -9,30 +9,32 @@ import (
 
 // getPath extracts the last component from a given path string.//+
 // If the path does not contain any slashes, it returns the original string.//+
-////+
+// //+
 // Parameters://+
 //   - s: A string representing the input path.//+
-////+
+//
+// //+
 // Returns://+
 //   - A string representing the last component of the input path.//+
 func getPath(s string) string {
 	l := strings.LastIndex(s, "/")
 	if l == -1 {
-        return s
-    }
+		return s
+	}
 	return s[l+1:]
 }
 
 // SortPaths sorts a slice of file paths and separates directories from non-directories.//+
-////+
+// //+
 // This function performs the following operations://+
 // 1. Sorts paths alphabetically by their last component, case-insensitively.//+
 // 2. Moves directories to the end of the slice while preserving their relative order.//+
 // 3. Finds the index of the first directory in the sorted slice.//+
-////+
+// //+
 // Parameters://+
 //   - paths: A slice of strings representing file and directory paths to be sorted.//+
-////+
+//
+// //+
 // Returns://+
 //   - []string: The sorted slice of paths with directories moved to the end.//+
 //   - int: The index of the first directory in the sorted slice. If no directories//+
@@ -86,7 +88,6 @@ func SortPaths(paths []string) ([]string, int) {
 	return paths, nonDirIdx
 }
 
-
 // listPath lists the contents of a specified directory path based on the given flags.
 //
 // Parameters:
@@ -135,16 +136,19 @@ func ListPath(path string, flags Flags) error {
 //   - []FileInfo: A slice of FileInfo structures containing information about the directory entries.
 //   - error: An error if there was a problem reading the directory or its contents.
 func readDir(path string, flags Flags) ([]FileInfo, error) {
+	var target string
 	if info, err := os.Lstat(path); err == nil {
 		if flags.Long {
-			if target, err := os.Readlink(path); err == nil {
+			if target, err = os.Readlink(path); err == nil {
 				entry := FileInfo{Name: path, Info: info, LinkTarget: target}
 				return []FileInfo{entry}, nil
 			}
 		}
 		if !info.IsDir() {
+          if _, err = os.Readlink(path); err != nil {
 			entry := FileInfo{Name: path, Info: info}
 			return []FileInfo{entry}, nil
+		  }
 		}
 	}
 
@@ -291,7 +295,8 @@ func compareEntries(a, b FileInfo, flags Flags) bool {
 // Clean string to remove -, _, and. from the name.
 func cleanName(name string) string {
 	return strings.Map(func(r rune) rune {
-		if r == '-' || r == '_' || r == '.' {
+		switch r {
+		case '-', '_','.', '[','#', ']', '{', '}', '|', '\\', ':', ';', '<', '>', ',', '?', '!', '@', '$', '%', '^', '&', '*', '(', ')', '~', '`', '"', '\'', '=', '+', '/':
 			return -1
 		}
 		return r
