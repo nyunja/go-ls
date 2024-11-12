@@ -15,7 +15,7 @@ func DisplayShortList(w io.Writer, e []FileInfo) {
 	// Prepare the list of file names and check if any entry is too long
 	for _, entry := range entries {
 		formattedName := GetShortFormat(entry)
-		if len(formattedName) > 80 {
+		if len(formattedName) > 100 {
 			displayColumn = true
 		}
 		fileNameEntries = append(fileNameEntries, formattedName)
@@ -60,7 +60,7 @@ func DisplayShortList(w io.Writer, e []FileInfo) {
 	for _, row := range columns {
 		for i, name := range row {
 			padding := columnWidths[i] - len(name) + 2 // Add extra space between columns
-			fmt.Fprint(w, name + strings.Repeat(" ", padding))
+			fmt.Fprint(w, name+strings.Repeat(" ", padding))
 		}
 		fmt.Fprintln(w)
 	}
@@ -72,4 +72,3 @@ func GetShortFormat(entry Entry) string {
 
 	return entry.Name
 }
-
