@@ -22,11 +22,13 @@ func main() {
 	
 	for i, path := range paths {
 		if i >= idx {
-			if flags.Recursive && len(paths) >= 1 {
-				if len(paths) != 1 {
+			if flags.Recursive || len(paths) >= 1 {
+				if i > 0 {
 					fmt.Println()
 				}
-				fmt.Printf("%s:\n", path)
+				if len(paths) > 1{
+					fmt.Printf("%s:\n", path)
+				}
 			}
 			if !ls.ShowTotals {
 				ls.ShowTotals = true
