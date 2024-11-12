@@ -48,7 +48,7 @@ To clone the project, use:
 git clone https://learn.zone01kisumu.ke/git/johnotieno0/my-ls-1.git
 ```
 ```sh
-cd my-ls
+cd my-ls-1
 ```
 
 Run
