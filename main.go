@@ -9,7 +9,11 @@ import (
 
 func main() {
 	// Parse flags from command line
-	flags, paths := ls.ParseFlags(os.Args[1:])
+	flags, paths, err := ls.ParseFlags(os.Args[1:])
+	if err != nil {
+        fmt.Fprintf(os.Stderr, "ls: %v\n", err)
+        return
+    }
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
