@@ -45,7 +45,7 @@ func ParseFlags(args []string) (flags Flags, parsedArgs []string, err error) {
 						case 'r':
 							flags.Reverse = true
 						default:
-							return Flags{}, nil, fmt.Errorf("invalid flag: %s", arg)
+							return Flags{}, nil, fmt.Errorf("invalid option -- '%s'", arg[1:])
 						}
 					}
 				}
