@@ -113,7 +113,7 @@ func ListPath(path string, flags Flags) error {
 					continue
 				}
 				fmt.Println()
-				newPath := path + "/" + entry.Name
+				newPath :=joinPath(path, entry.Name)
 				fmt.Printf("%s:\n", newPath)
 				if err := ListPath(newPath, flags); err != nil {
 					fmt.Fprintf(os.Stderr, "ls: %s: %v\n", newPath, err)
@@ -183,7 +183,7 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 		mode := file.Mode().String()
 		switch mode[0] {
 		case 'l', 'L':
-			newPath := path + "/" + file.Name()
+			newPath := joinPath(path, file.Name())
 			linkTarget, err := os.Readlink(newPath)
 			if err == nil {
 				entry.LinkTarget = linkTarget
@@ -301,4 +301,15 @@ func cleanName(name string) string {
 		}
 		return r
 	}, name)
+}
+
+func joinPath(parts...string) string {
+	res := ""
+	for i, part := range parts {
+		if i == len(parts)-1 && !strings.HasPrefix(part, "/") {
+			res += "/"
+		}
+		res += part
+	}
+	return res
 }
