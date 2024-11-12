@@ -6,15 +6,15 @@ import (
 	"strings"
 )
 
-// getPath extracts the last component from a given path string.//+
-// If the path does not contain any slashes, it returns the original string.//+
-// //+
-// Parameters://+
-//   - s: A string representing the input path.//+
+// getPath extracts the last component from a given path string.
+// If the path does not contain any slashes, it returns the original string.
+// 
+// Parameters:
+//   - s: A string representing the input path.
 //
-// //+
-// Returns://+
-//   - A string representing the last component of the input path.//+
+//
+// Returns:
+//   - A string representing the last component of the input path.
 func getPath(s string) string {
 	l := strings.LastIndex(s, "/")
 	if l == -1 {
@@ -23,21 +23,20 @@ func getPath(s string) string {
 	return s[l+1:]
 }
 
-// SortPaths sorts a slice of file paths and separates directories from non-directories.//+
-// //+
-// This function performs the following operations://+
-// 1. Sorts paths alphabetically by their last component, case-insensitively.//+
-// 2. Moves directories to the end of the slice while preserving their relative order.//+
-// 3. Finds the index of the first directory in the sorted slice.//+
-// //+
-// Parameters://+
-//   - paths: A slice of strings representing file and directory paths to be sorted.//+
+// SortPaths sorts a slice of file paths and separates directories from non-directories.
 //
-// //+
-// Returns://+
-//   - []string: The sorted slice of paths with directories moved to the end.//+
-//   - int: The index of the first directory in the sorted slice. If no directories//+
-//     are present, this will be equal to the length of the slice.//+
+// This function performs the following operations:
+// 1. Sorts paths alphabetically by their last component, case-insensitively.
+// 2. Moves directories to the end of the slice while preserving their relative order.
+// 3. Finds the index of the first directory in the sorted slice.
+//
+// Parameters:
+//   - paths: A slice of strings representing file and directory paths to be sorted.
+//
+// Returns:
+//   - []string: The sorted slice of paths with directories moved to the end.
+//   - int: The index of the first directory in the sorted slice. If no directories
+//     are present, this will be equal to the length of the slice.
 func SortPaths(paths []string) ([]string, int) {
 	// Step 1: Bubble sort by the last component, alphabetically and case-insensitively
 	for k := 0; k < len(paths)-1; k++ {
@@ -116,7 +115,8 @@ func ListPath(path string, flags Flags) error {
 				newPath :=joinPath(path, entry.Name)
 				fmt.Printf("%s:\n", newPath)
 				if err := ListPath(newPath, flags); err != nil {
-					fmt.Fprintf(os.Stderr, "ls: %s: %v\n", newPath, err)
+					fmt.Fprintf(os.Stdout, "total 0\n")
+					fmt.Fprintf(os.Stderr, "ls: cannot open directory '%s': Permission denied\n", newPath)
 				}
 			}
 		}
@@ -242,8 +242,8 @@ func getParentDir(path string) string {
 // It uses the quickSort algorithm to perform the sorting operation.
 
 // Parameters:
-//   - entries: A slice of FileInfo structures representing the directory entries to be sorted.//+
-//   - flags: A Flags struct containing boolean flags that determine the sorting criteria.//+
+//   - entries: A slice of FileInfo structures representing the directory entries to be sorted.
+//   - flags: A Flags struct containing boolean flags that determine the sorting criteria.
 
 // Returns:
 //   - []FileInfo: A sorted slice of FileInfo structures.
@@ -305,8 +305,8 @@ func cleanName(name string) string {
 
 func joinPath(parts...string) string {
 	res := ""
-	for i, part := range parts {
-		if i == len(parts)-1 && !strings.HasPrefix(part, "/") {
+	for _, part := range parts {
+		if !strings.HasPrefix(part, "/") {
 			res += "/"
 		}
 		res += part
