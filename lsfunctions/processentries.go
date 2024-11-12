@@ -128,7 +128,7 @@ func getTotalBlocks(entries []FileInfo) TotalBlocks {
 
 func addQuotes(s string) string {
 	if strings.Contains(s, " ") || hasSpecialChar(s){
-		s = fmt.Sprintf(`"%s"`, s)
+		s = fmt.Sprintf(`'%s'`, s)
 	}
 	return s
 }
