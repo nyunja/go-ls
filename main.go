@@ -11,15 +11,15 @@ func main() {
 	// Parse flags from command line
 	flags, paths, err := ls.ParseFlags(os.Args[1:])
 	if err != nil {
-        fmt.Fprintf(os.Stderr, "ls: %v\n", err)
-        return
-    }
+		fmt.Fprintf(os.Stderr, "ls: %v\n", err)
+		return
+	}
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
 	// Sort paths alphabetically and case-insensitively
 	paths, idx := ls.SortPaths(paths)
-
+	
 	for i, path := range paths {
 		if i >= idx {
 			if flags.Recursive && len(paths) >= 1 {
@@ -34,7 +34,7 @@ func main() {
 		}
 		err := ls.ListPath(path, flags)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "ls: %s: %v\n", path, err)
+			fmt.Fprintf(os.Stderr, "ls: cannot access '%s': No such file or directory\n", path)
 		}
 	}
 }
