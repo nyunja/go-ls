@@ -18,7 +18,7 @@ func TestParseFlags(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotFlags, gotParsedArgs := ParseFlags(tt.args)
+			gotFlags, gotParsedArgs, _ := ParseFlags(tt.args)
 			if !reflect.DeepEqual(gotFlags, tt.wantFlags) {
 				t.Errorf("ParseFlags() gotFlags = %v, want %v", gotFlags, tt.wantFlags)
 			}
