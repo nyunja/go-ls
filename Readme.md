@@ -53,18 +53,16 @@ cd my-ls
 
 Run
 
-After navigating to the project directory, run the project:
+After navigating to the project directory, build the project:
 ```sh
 go run . [flags] [directory]
 ```
 
 ## Contributors
+[Teddy siaka](https://learn.zone01kisumu.ke/git/tesiaka)
 
 [John Otieno](https://learn.zone01kisumu.ke/git/johnotieno0)
 
-[Teddy siaka](https://learn.zone01kisumu.ke/git/tesiaka)
-
-
-## License
+License
 
 This project is licensed under the MIT License.
