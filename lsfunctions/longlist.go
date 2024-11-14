@@ -17,6 +17,7 @@ func DisplayLongFormat(w io.Writer, entries []FileInfo) {
 }
 
 func GetLongFormatString2(e Entry, w Widths) string {
+	e = colorName(e)
 	s := ""
 	if w.minorCol == 0 {
 		s = fmt.Sprintf("%-*s %*s %-*s %-*s %*s %*s %s", w.modCol, e.Mode, w.linkCol, e.LinkCount, w.ownerCol, e.Owner, w.groupCol, e.Group, w.sizeCol, e.Size, w.timeCol, e.Time, e.Name)
