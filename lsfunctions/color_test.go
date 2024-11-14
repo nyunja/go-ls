@@ -18,7 +18,7 @@ func Test_colorName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := colorName(tt.args.entry); !reflect.DeepEqual(got, tt.want) {
+			if got := colorName(tt.args.entry, false); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("colorName() = %q, want %q", got.Name, tt.want.Name)
 			}
 		})
