@@ -68,7 +68,7 @@ func DisplayShortList(w io.Writer, e []FileInfo) {
 
 func GetShortFormat(entry Entry) string {
 	// Color output
-	entry = colorName(entry)
+	entry = colorName(entry, false)
 
 	return entry.Name
 }
