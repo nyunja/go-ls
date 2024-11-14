@@ -15,7 +15,7 @@ func Test_getFileType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getFileType(tt.args.entry); got != tt.want {
+			if _, got := getFileType(tt.args.entry); got != tt.want {
 				t.Errorf("getFileType() = %v, want %v", got, tt.want)
 			}
 		})
