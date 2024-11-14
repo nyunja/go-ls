@@ -8,10 +8,9 @@ import (
 
 // getPath extracts the last component from a given path string.
 // If the path does not contain any slashes, it returns the original string.
-// 
+//
 // Parameters:
 //   - s: A string representing the input path.
-//
 //
 // Returns:
 //   - A string representing the last component of the input path.
@@ -112,7 +111,7 @@ func ListPath(path string, flags Flags) error {
 					continue
 				}
 				fmt.Println()
-				newPath :=joinPath(path, entry.Name)
+				newPath := joinPath(path, entry.Name)
 				fmt.Printf("%s:\n", newPath)
 				if err := ListPath(newPath, flags); err != nil {
 					fmt.Fprintf(os.Stdout, "total 0\n")
@@ -303,7 +302,7 @@ func cleanName(name string) string {
 	}, name)
 }
 
-func joinPath(parts...string) string {
+func joinPath(parts ...string) string {
 	res := ""
 	for _, part := range parts {
 		if !strings.HasPrefix(part, "/") {

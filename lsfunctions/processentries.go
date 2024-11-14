@@ -54,7 +54,6 @@ func processEntries(entries []FileInfo) ([]Entry, Widths) {
 		if g, err := user.LookupGroupId(group); err == nil {
 			f.Group = g.Name
 		}
-		f = colorName(f)
 		w.modCol = getMax(w.modCol, len(f.Mode))
 		w.groupCol = getMax(w.groupCol, len(f.Group))
 		w.ownerCol = getMax(w.ownerCol, len(f.Owner))
@@ -114,6 +113,14 @@ func swapT(s string) string {
 		}
 	}
 	return string(res)
+}
+
+func swapU(s string) string {
+	if len(s) <= 1 {
+		return s
+	}
+	s = strings.Replace(s, "u", "-",1)
+	return strings.Replace(s, "x", "s", 1)
 }
 
 func getTotalBlocks(entries []FileInfo) TotalBlocks {
