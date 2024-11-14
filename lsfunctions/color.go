@@ -7,6 +7,7 @@ func colorName(entry Entry) Entry {
 	const (
 		reset      = "\033[0m"
 		turqoise = "\033[1;38;2;42;161;179m"
+		orangeBackground = "\033[48;2;192;28;20m"
 		boldBlue   = "\033[1;38;5;01;34m"
 		boldYellow = "\033[1;38;2;162;115;76m"
 		blackBack = "\033[40m"
@@ -27,6 +28,12 @@ func colorName(entry Entry) Entry {
 	// Handle symbolic links
 	if entry.Mode[0] == 'l' {
 		entry.Name = turqoise+ entry.Name + reset
+		return entry
+	}
+	// Handle setuid files
+	if entry.Mode[0] == 'u' {
+		entry.Mode = swapU(entry.Mode)
+		entry.Name = orangeBackground + entry.Name + reset
 		return entry
 	}
 	// Handle directories
