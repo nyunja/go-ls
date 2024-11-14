@@ -144,7 +144,7 @@ func hasSpecialChar(s string) bool {
 	if len(s) == 0 {
         return false
     }
-	specialChars := []rune{ '[','#', ']', '{', '}', '|', '\\', ':', ';', '<', '>', ',', '?', '!', '@', '$', '%', '^', '&', '*', '(', ')', '~', '`', '"', '\'', '=', '+', '/'}
+	specialChars := []rune{ '[','#', ']', '{', '}', '|', '\\', ':', ';', '<', '>', ',', '?', '!', '@', '$', '%', '^', '&', '*', '(', ')', '~', '`', '"', '\'', '=', '+'}
 	for _, ch := range specialChars {
         if strings.ContainsRune(s, ch) {
             return true
