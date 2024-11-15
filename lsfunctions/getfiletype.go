@@ -1,6 +1,8 @@
 package lsfunctions
 
-import "strings"
+import (
+	"strings"
+)
 
 func getFileType(entry Entry) (Entry, string) {
 	mod := entry.Mode
