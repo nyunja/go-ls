@@ -9,8 +9,20 @@ import (
 func DisplayShortList(w io.Writer, e []FileInfo) {
 	// Process entries to create type []Entry
 	entries, _ := processEntries(e)
+
 	var fileNameEntries []string
 	displayColumn := false
+	maxwith := 0
+
+	for i := 0; i < len(entries); i++ {
+		if len(entries[i].Name) > maxwith {
+			maxwith = len(entries[i].Name)
+		}
+	}
+
+	for i := 0; i < len(entries); i++ {
+		entries[i].Name = entries[i].Name + strings.Repeat(" ", (maxwith-len(entries[i].Name)+5))
+	}
 
 	// Prepare the list of file names and check if any entry is too long
 	for _, entry := range entries {
@@ -46,21 +58,10 @@ func DisplayShortList(w io.Writer, e []FileInfo) {
 		columns = append(columns, fileNameEntries[i:end])
 	}
 
-	// Calculate the maximum width of each column
-	columnWidths := make([]int, itemsPerRow)
-	for _, row := range columns {
-		for i, name := range row {
-			if len(name) > columnWidths[i] {
-				columnWidths[i] = len(name)
-			}
-		}
-	}
-
 	// Print each row with aligned columns
 	for _, row := range columns {
-		for i, name := range row {
-			padding := columnWidths[i] - len(name) + 2 // Add extra space between columns
-			fmt.Fprint(w, name+strings.Repeat(" ", padding))
+		for _, name := range row {
+			fmt.Fprint(w, name)
 		}
 		fmt.Fprintln(w)
 	}
