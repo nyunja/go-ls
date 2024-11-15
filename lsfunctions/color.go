@@ -7,8 +7,9 @@ const (
 	orangeBackground = "\033[48;2;192;28;20m"
 	boldBlue         = "\033[1;38;5;01;34m"
 	boldYellow       = "\033[1;38;2;162;115;76m"
-	yellowBackground = "\033[1;48;2;162;115;76m"
+	yellowBackground = "\033[48;2;162;115;76m"
 	blackBack        = "\033[40m"
+	blackText        = "\033[30m"
 	red              = "\033[1;31m"
 	cyan             = "\033[1;36m"
 	green            = "\033[1;38;2;39;169;105m"
@@ -18,7 +19,7 @@ func colorName(entry Entry, isTarget bool) Entry {
 	// Color map for different file types
 	colors := map[string]string{
 		"setuid":  orangeBackground,
-		"getuid":  yellowBackground + blackBack,
+		"setgid":  yellowBackground + blackText,
 		"dir":     boldBlue,
 		"dev":     boldYellow + blackBack,
 		"archive": red,
@@ -30,7 +31,7 @@ func colorName(entry Entry, isTarget bool) Entry {
 	}
 
 	// Handle symbolic links
-	if entry.Mode[0] == 'l' && !isTarget {
+	if entry.Mode[0] == 'l' || entry.Mode[0] == 'l' && !isTarget {
 		entry.Name = turqoise + entry.Name + reset
 		return entry
 	}
