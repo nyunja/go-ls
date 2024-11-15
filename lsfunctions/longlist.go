@@ -25,6 +25,7 @@ var specialFiles = map[string]string{
 	"chsh": "setuid",
 	"chfn": "setuid",
 	"chage": "setgid",
+	"/proc/self/fd": "dir",
 }
 
 func DisplayLongFormat(w io.Writer, entries []FileInfo) {
@@ -64,6 +65,7 @@ func colorLinkTarget(s string) string {
 		"crd":     "\x1b[1;38;5;8m",
 		"css":     cyan,
 		"exec":    green,
+		"t": "\033[38;2;38;162;105m",
 	}
 	if file, ok := specialFiles[s]; ok {
 		if color, exists := colors[file]; exists {

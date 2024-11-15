@@ -15,6 +15,7 @@ const (
 	red              = "\033[1;31m"
 	cyan             = "\033[1;36m"
 	green            = "\033[1;38;2;39;169;105m"
+	greenBackground = "\033[42m"
 )
 
 func colorName(entry Entry, isTarget bool) Entry {
