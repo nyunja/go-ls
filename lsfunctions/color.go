@@ -1,5 +1,7 @@
 package lsfunctions
 
+import "strings"
+
 // Define color codes
 const (
 	reset            = "\033[0m"
@@ -32,14 +34,23 @@ func colorName(entry Entry, isTarget bool) Entry {
 
 	// Handle symbolic links
 	if entry.Mode[0] == 'l' || entry.Mode[0] == 'l' && !isTarget {
+		originalsize := len(entry.Name)
+		entry.Name = strings.TrimSpace(entry.Name)
+		padding := originalsize - len(entry.Name)
 		entry.Name = turqoise + entry.Name + reset
+		entry.Name = entry.Name + strings.Repeat(" ", padding)
 		return entry
 	}
 
 	// Color code based on file type
 	entry, fileType := getFileType(entry)
 	if color, exists := colors[fileType]; exists {
+		originalsize := len(entry.Name)
+		entry.Name = strings.TrimSpace(entry.Name)
+		padding := originalsize - len(entry.Name)
+
 		entry.Name = color + entry.Name + reset
+		entry.Name = entry.Name + strings.Repeat(" ", padding)
 	}
 
 	return entry
