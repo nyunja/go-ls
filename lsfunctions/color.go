@@ -16,11 +16,14 @@ const (
 	cyan             = "\033[1;36m"
 	green            = "\033[1;38;2;39;169;105m"
 	greenBackground = "\033[42m"
+	magentaBold = "\033[1;35m"
 )
 
 func colorName(entry Entry, isTarget bool) Entry {
 	// Color map for different file types
 	colors := map[string]string{
+		"world-writable": magentaBold,
+		"sticky":  greenBackground + blackText,
 		"setuid":  orangeBackground,
 		"setgid":  yellowBackground + blackText,
 		"dir":     boldBlue,
