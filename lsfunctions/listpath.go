@@ -165,12 +165,16 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 	// Add etries for parents directory and current directory
 	if flags.All {
 		if currentInfo, err := os.Stat(path); err == nil {
-			entries = append(entries, FileInfo{Name: ".", Info: currentInfo})
+			currentEntry := FileInfo{Name: ".", Info: currentInfo}
+			setEntryPath(path, &currentEntry)
+			entries = append(entries, currentEntry)
 		}
 
 		parentDir := getParentDir(path)
 		if parentInfo, err := os.Stat(parentDir); err == nil {
-			entries = append(entries, FileInfo{Name: "..", Info: parentInfo})
+			parentEntry := FileInfo{Name: "..", Info: parentInfo}
+			setEntryPath(path, &parentEntry)
+			entries = append(entries, parentEntry)
 		}
 	}
 	for _, file := range files {
@@ -178,6 +182,7 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 			continue
 		}
 		entry := FileInfo{Name: file.Name(), Info: file}
+		setEntryPath(path, &entry)
 		// Get the Rdev for device files
 		mode := file.Mode().String()
 		switch mode[0] {
@@ -302,13 +307,19 @@ func cleanName(name string) string {
 	}, name)
 }
 
-func joinPath(parts ...string) string {
-	res := ""
-	for _, part := range parts {
-		if !strings.HasPrefix(part, "/") {
-			res += "/"
-		}
-		res += part
+// setEntryPath sets the full path for a FileInfo entry
+func setEntryPath(baseDir string, entry *FileInfo) {
+	if entry.Name == "." {
+		entry.Path = baseDir
+	} else if entry.Name == ".." {
+		entry.Path = getParentDir(baseDir)
+	} else {
+		entry.Path = joinPath(baseDir, entry.Name)
 	}
-	return res
+}
+
+func joinPath(dir, file string) string {
+	dir = strings.TrimSuffix(dir, "/")
+	file = strings.TrimPrefix(file, "/")
+	return dir + "/" + file
 }
