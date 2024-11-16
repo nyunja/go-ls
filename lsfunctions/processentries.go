@@ -18,7 +18,8 @@ func processEntries(entries []FileInfo) ([]Entry, Widths) {
 		info := entry.Info
 		mode := info.Mode()
 		f.Name = addQuotes(entry.Name)
-		f.Mode = mode.String()
+		f.Mode, _ = formatPermissionsWithACL(entry.Path, mode)
+		// fmt.Println(f.Mode)
 		if strings.HasPrefix(f.Mode, "L") {
 			f.Mode = "l" + f.Mode[1:]
 		}
@@ -88,39 +89,6 @@ func formatTime(modTime time.Time) string {
 		return modTime.Format("Jan _2 15:04")
 	}
 	return modTime.Format("Jan _2  2006")
-}
-
-// swapT modifies a string by removing all 't' characters except for the last one,
-// which is moved to the end of the string if it's not already there.
-//
-// Parameters:
-//   - s: The input string to be modified.
-//
-// Returns:
-//   - string: The modified string with 't' characters removed and potentially one 't' added at the end.
-func swapT(s string) string {
-	if len(s) <= 1 {
-		return s
-	}
-	res := []rune{}
-	for i, ch := range s {
-		if ch == 't' {
-			continue
-		} else if i == len(s)-1 {
-			res = append(res, 't')
-		} else {
-			res = append(res, ch)
-		}
-	}
-	return string(res)
-}
-
-func swapU(s string) string {
-	if len(s) <= 1 {
-		return s
-	}
-	s = strings.Replace(s, "u", "-",1)
-	return strings.Replace(s, "x", "s", 1)
 }
 
 func getTotalBlocks(entries []FileInfo) TotalBlocks {
