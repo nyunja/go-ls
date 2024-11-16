@@ -4,6 +4,7 @@ import "os"
 
 // FileInfo struct to store file information from readDir function
 type FileInfo struct {
+	Path       string
 	Name       string
 	Info       os.FileInfo
 	LinkTarget string
@@ -23,4 +24,3 @@ var ShowTotals bool
 type Widths struct {
 	sizeCol, ownerCol, groupCol, linkCol, timeCol, modCol, minorCol int
 }
-
