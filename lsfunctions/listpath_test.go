@@ -13,7 +13,6 @@ type mockFileInfo struct {
 	size    int64
 	mode    os.FileMode
 	modTime time.Time
-	isDir   bool
 	sys     interface{}
 }
 
