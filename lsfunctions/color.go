@@ -1,6 +1,8 @@
 package lsfunctions
 
-import "strings"
+import (
+	"strings"
+)
 
 // Define color codes
 const (
@@ -8,6 +10,7 @@ const (
 	turqoise         = "\033[1;38;2;42;161;179m"
 	orangeBackground = "\033[48;2;192;28;20m"
 	boldBlue         = "\033[1;38;5;01;34m"
+	yellow           = "\033[38;2;162;115;76m"
 	boldYellow       = "\033[1;38;2;162;115;76m"
 	yellowBackground = "\033[48;2;162;115;76m"
 	blackBack        = "\033[40m"
@@ -15,27 +18,40 @@ const (
 	red              = "\033[1;31m"
 	cyan             = "\033[1;36m"
 	green            = "\033[1;38;2;39;169;105m"
-	greenBackground = "\033[42m"
-	magentaBold = "\033[1;35m"
+	greenBackground  = "\033[42m"
+	magentaBold      = "\033[1;35m"
+	socket           = "\033[1;38;2;163;71;181m"
 )
 
 func colorName(entry Entry, isTarget bool) Entry {
 	// Color map for different file types
 	colors := map[string]string{
 		"world-writable": magentaBold,
-		"sticky":  greenBackground + blackText,
-		"setuid":  orangeBackground,
-		"setgid":  yellowBackground + blackText,
-		"dir":     boldBlue,
-		"dev":     boldYellow + blackBack,
-		"archive": red,
-		"audio":   "\x1b[1;96m", // Light Cyan
-		"image":   "\x1b[1;35m", // Magenta
-		"crd":     "\x1b[1;38;5;8m",
-		"css":     cyan,
-		"exec":    green,
+		"pipe":           yellow + blackBack,
+		"socket":         socket,
+		"sticky":         greenBackground + blackText,
+		"setuid":         orangeBackground,
+		"setgid":         yellowBackground + blackText,
+		"dir":            boldBlue,
+		"dev":            boldYellow + blackBack,
+		"archive":        red,
+		"audio":          "\x1b[1;96m", // Light Cyan
+		"image":          "\x1b[1;35m", // Magenta
+		"crd":            "\x1b[1;38;5;8m",
+		"css":            cyan,
+		"exec":           green,
 	}
 
+	if isTarget {
+		if strings.Split(entry.Mode, "-")[0] == "lrwx" {
+			originalsize := len(entry.Name)
+			entry.Name = strings.TrimSpace(entry.Name)
+			padding := originalsize - len(entry.Name)
+			entry.Name = boldYellow + blackBack + entry.Name + reset
+			entry.Name = entry.Name + strings.Repeat(" ", padding)
+			return entry
+		}
+	}
 	// Handle symbolic links
 	if (entry.Mode[0] == 'l' || entry.Mode[0] == 'L') && !isTarget {
 		originalsize := len(entry.Name)
