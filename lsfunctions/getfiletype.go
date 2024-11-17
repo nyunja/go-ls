@@ -6,12 +6,19 @@ import (
 
 func getFileType(entry Entry) (Entry, string) {
 	mod := entry.Mode
+	// Handel pipe files
+	if entry.Mode[0] == 'p' {
+		return entry, "pipe"
+	}
+	if entry.Mode[0] == 's' {
+		return entry, "socket"
+	}
 	// Handle setuid files
-	if entry.Mode[3] == 's' ||  entry.Mode[3] == 'S' {
+	if entry.Mode[3] == 's' || entry.Mode[3] == 'S' {
 		return entry, "setuid"
 	}
 	// Handle setuid files
-	if entry.Mode[6] == 's' ||  entry.Mode[6] == 'S' {
+	if entry.Mode[6] == 's' || entry.Mode[6] == 'S' {
 		return entry, "setgid"
 	}
 	// Handle directories
@@ -36,8 +43,6 @@ func getFileType(entry Entry) (Entry, string) {
 	tokens := strings.Split(strings.ToLower(name), ".")
 	ext := "." + tokens[len(tokens)-1]
 	switch ext {
-	case ".py", ".js", ".go":
-		return entry, "exec"
 	case ".log":
 		return entry, "text"
 	case ".pdf":
