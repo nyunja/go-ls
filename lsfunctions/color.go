@@ -37,7 +37,7 @@ func colorName(entry Entry, isTarget bool) Entry {
 	}
 
 	// Handle symbolic links
-	if entry.Mode[0] == 'l' || entry.Mode[0] == 'l' && !isTarget {
+	if (entry.Mode[0] == 'l' || entry.Mode[0] == 'L') && !isTarget {
 		originalsize := len(entry.Name)
 		entry.Name = strings.TrimSpace(entry.Name)
 		padding := originalsize - len(entry.Name)
