@@ -54,34 +54,16 @@ func GetLongFormatString2(e Entry, w Widths) string {
 }
 
 func colorLinkTarget(path, s string) string {
-	// colors := map[string]string{
-	// 	"setuid":  orangeBackground,
-	// 	"setgid":  yellowBackground + blackText,
-	// 	"dir":     boldBlue,
-	// 	"dev":     boldYellow + blackBack,
-	// 	"archive": red,
-	// 	"audio":   "\x1b[1;96m", // Light Cyan
-	// 	"image":   "\x1b[1;35m", // Magenta
-	// 	"crd":     "\x1b[1;38;5;8m",
-	// 	"css":     cyan,
-	// 	"exec":    green,
-	// 	"t": "\033[38;2;38;162;105m",
-	// }
-	// if file, ok := specialFiles[s]; ok {
-	// 	if color, exists := colors[file]; exists {
-	// 		return color + s + reset
-	// 	}
-	// }
 	absPath := resolveRelativePath(path, s)
+	// Handle shared folder link targets
+	if strings.HasPrefix(s, "../share") {
+		absPath = "/usr" + absPath
+	}
 	info, err := os.Lstat(absPath)
 	var newEntry Entry
 	if os.IsNotExist(err) {
-		// debug broken link
-		fmt.Printf("Broken link: %s -> %s\n", path, s)
-		fmt.Println("link is broken: " + err.Error())
 		return s
 	} else if err != nil {
-		fmt.Println("cannot access link target: " + err.Error())
 		return s
 	} else {
 		permissions, err := formatPermissionsWithACL(absPath, info.Mode())
@@ -89,24 +71,13 @@ func colorLinkTarget(path, s string) string {
             return "cannot format permissions: " + err.Error()
         }
 		newEntry = Entry{Name: s, Mode: permissions, Path: absPath}
-		// return "target link exists and is of type: " + info.Mode().String()
 	}
-	// newEntry := Entry{Name: s, Mode: info.Mode().String()}
 	colorEntry := colorName(newEntry, true)
-	// entry, fileType := getFileType(newEntry)
 
-	// if color, exists := colors[fileType]; exists {
-	// 	return color + entry.Name + reset
-	// }
 	return colorEntry.Name
 }
 
 func resolveRelativePath(linkPath, target string) string {
-	// linkDir, err := os.Getwd()
-	// if err!= nil {
-    //     fmt.Println("unable to get current working directory: ", err.Error())
-    // }
-	// fmt.Println("working directory: ", linkDir)
 	linkDir := ""
 	lastSlash := strings.LastIndex(linkPath, "/")
 	if lastSlash != -1 {
@@ -131,11 +102,5 @@ func resolveRelativePath(linkPath, target string) string {
 			stack = append(stack, segment)
 		}
 	}
-
-	// linkPath = strings.Join(stack, "/")
-	// if strings.HasPrefix(linkPath, "..") {
-	// 	return strings.Join(stack, "/")
-	// }
-	// Join normalized segments
 	return "/" + strings.Join(stack, "/")
 }
