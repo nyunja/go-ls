@@ -78,9 +78,11 @@ func colorLinkTarget(path, s string) string {
 	if os.IsNotExist(err) {
 		// debug broken link
 		fmt.Printf("Broken link: %s -> %s\n", path, s)
-		return "link is broken: " + err.Error()
+		fmt.Println("link is broken: " + err.Error())
+		return s
 	} else if err != nil {
-		return "cannot access link target: " + err.Error()
+		fmt.Println("cannot access link target: " + err.Error())
+		return s
 	} else {
 		permissions, err := formatPermissionsWithACL(absPath, info.Mode())
 		if err!= nil {
