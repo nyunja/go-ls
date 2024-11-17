@@ -13,7 +13,7 @@ type FileInfo struct {
 
 type Entry struct {
 	Name, Mode, User, Owner, Group, Type,
-	LinkTarget, LinkCount, Size, Minor, Time string
+	LinkTarget, LinkCount, Size, Minor, Time, Path string
 	IsDirectory bool
 }
 
