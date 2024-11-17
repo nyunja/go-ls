@@ -19,7 +19,7 @@ func processEntries(entries []FileInfo) ([]Entry, Widths) {
 		mode := info.Mode()
 		f.Name = addQuotes(entry.Name)
 		f.Mode, _ = formatPermissionsWithACL(entry.Path, mode)
-		// fmt.Println(f.Mode)
+		f.Path = entry.Path
 		if strings.HasPrefix(f.Mode, "L") {
 			f.Mode = "l" + f.Mode[1:]
 		}
