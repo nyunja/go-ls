@@ -13,7 +13,7 @@ func Test_processEntries(t *testing.T) {
 	}
 	var newEntries = []Entry{
 		{Name: "main.go", Mode: "-rw-r--r--", Size: "4", Time: "Jan  1  0001"},
-		{Name: "\033[1;38;2;39;169;105mted\033[0m", Mode: "-rwxr-xr-x", Size: "10", Time: "Jan  1  0001"},
+		{Name: "ted", Mode: "-rwxr-xr-x", Size: "10", Time: "Jan  1  0001"},
 		{Name: "go.mod", Mode: "-rw-r--r--", Size: "7", Time: "Jan  1  0001"},
 	}
 	tests := []struct {
