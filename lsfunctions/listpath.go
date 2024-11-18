@@ -134,21 +134,12 @@ func ListPath(path string, flags Flags) error {
 //   - []FileInfo: A slice of FileInfo structures containing information about the directory entries.
 //   - error: An error if there was a problem reading the directory or its contents.
 func readDir(path string, flags Flags) ([]FileDetails, error) {
-	var target string
-	if info, err := os.Lstat(path); err == nil {
-
-		if flags.Long {
-			if target, err = os.Readlink(path); err == nil {
-				entry := FileDetails{Name: path, Info: info, LinkTarget: target}
-				return []FileDetails{entry}, nil
-			}
-		}
-		if !info.IsDir() {
-			if _, err = os.Readlink(path); err != nil {
-				entry := FileDetails{Name: path, Info: info}
-				return []FileDetails{entry}, nil
-			}
-		}
+	info, err := os.Lstat(path)
+    if err != nil {
+        return nil, fmt.Errorf("error accessing path %s: %w", path, err)
+    }
+	if !info.IsDir() {
+		return handleNonDirectory(path, info, flags)
 	}
 
 	dir, err := os.Open(path)
@@ -163,7 +154,7 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 	}
 	entries := make([]FileDetails, 0, len(files)+2)
 
-	// Add etries for parents directory and current directory
+	// Add entries for parents directory and current directory
 	if flags.All {
 		entries = append(entries, createDotEntry(path)...)
 	}
@@ -182,6 +173,17 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 	}
 
 	return sortEntries(entries, flags), nil
+}
+
+func handleNonDirectory(path string, info os.FileInfo, flags Flags) ([]FileDetails, error) {
+    entry := FileDetails{Name: path, Info: info}
+    if flags.Long {
+        target, err := os.Readlink(path)
+        if err == nil {
+            entry.LinkTarget = target
+        }
+    }
+    return []FileDetails{entry}, nil
 }
 
 func createFileDetails(path, name string, info os.FileInfo) FileDetails {
