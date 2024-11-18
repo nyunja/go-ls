@@ -165,18 +165,7 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 
 	// Add etries for parents directory and current directory
 	if flags.All {
-		if currentInfo, err := os.Stat(path); err == nil {
-			currentEntry := FileDetails{Name: ".", Info: currentInfo}
-			setEntryPath(path, &currentEntry)
-			entries = append(entries, currentEntry)
-		}
-
-		parentDir := getParentDir(path)
-		if parentInfo, err := os.Stat(parentDir); err == nil {
-			parentEntry := FileDetails{Name: "..", Info: parentInfo}
-			setEntryPath(path, &parentEntry)
-			entries = append(entries, parentEntry)
-		}
+		entries = append(entries, createDotEntry(path)...)
 	}
 
 	for _, file := range files {
@@ -199,6 +188,21 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 	}
 
 	return sortEntries(entries, flags), nil
+}
+
+func createDotEntry(path string) []FileDetails {
+	var entries []FileDetails
+	if currentInfo, err := os.Stat(path); err == nil {
+		currentEntry := FileDetails{Name: ".", Info: currentInfo}
+        entries = append(entries, currentEntry)
+	}
+	parentDir := getParentDir(path)
+	if parentInfo, err := os.Stat(parentDir); err == nil {
+		parentEntry := FileDetails{Name: "..", Info: parentInfo}
+		setEntryPath(path, &parentEntry)
+		entries = append(entries, parentEntry)
+	}
+	return entries
 }
 
 // getParentDir returns the parent directory path of the given path.
