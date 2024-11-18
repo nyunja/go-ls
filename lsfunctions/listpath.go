@@ -207,7 +207,6 @@ func createDotEntry(path string) []FileDetails {
 	parentDir := getParentDir(path)
 	if parentInfo, err := os.Stat(parentDir); err == nil {
 		parentEntry := FileDetails{Name: "..", Info: parentInfo}
-		setEntryPath(path, &parentEntry)
 		entries = append(entries, parentEntry)
 	}
 	return entries
@@ -333,5 +332,8 @@ func setEntryPath(baseDir string, entry *FileDetails) {
 func joinPath(dir, file string) string {
 	dir = strings.TrimSuffix(dir, "/")
 	file = strings.TrimPrefix(file, "/")
+	if dir == "" {
+		return "/" + file
+	}
 	return dir + "/" + file
 }
