@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func processEntries(entries []FileInfo) ([]Entry, Widths) {
+func processEntries(entries []FileDetails) ([]Entry, Widths) {
 	var newEntries []Entry
 	var w Widths
 	for _, entry := range entries {
@@ -91,7 +91,7 @@ func formatTime(modTime time.Time) string {
 	return modTime.Format("Jan _2  2006")
 }
 
-func getTotalBlocks(entries []FileInfo) TotalBlocks {
+func getTotalBlocks(entries []FileDetails) TotalBlocks {
 	var t TotalBlocks
 	for _, entry := range entries {
 		if stat, ok := entry.Info.Sys().(*syscall.Stat_t); ok {
@@ -102,7 +102,7 @@ func getTotalBlocks(entries []FileInfo) TotalBlocks {
 }
 
 func addQuotes(s string) string {
-	if strings.Contains(s, " ") || hasSpecialChar(s){
+	if strings.Contains(s, " ") || hasSpecialChar(s) {
 		s = fmt.Sprintf(`'%s'`, s)
 	}
 	return s
@@ -110,15 +110,15 @@ func addQuotes(s string) string {
 
 func hasSpecialChar(s string) bool {
 	if len(s) == 0 {
-        return false
-    }
-	specialChars := []rune{ '[','#', ']', '{', '}', '|', '\\', ':', ';', '<', '>', ',', '?', '!', '@', '$', '%', '^', '&', '*', '(', ')', '~', '`', '"', '\'', '=', '+'}
+		return false
+	}
+	specialChars := []rune{'[', '#', ']', '{', '}', '|', '\\', ':', ';', '<', '>', ',', '?', '!', '@', '$', '%', '^', '&', '*', '(', ')', '~', '`', '"', '\'', '=', '+'}
 	for _, ch := range specialChars {
-        if strings.ContainsRune(s, ch) {
-            return true
-        }
-    }
-    return false
+		if strings.ContainsRune(s, ch) {
+			return true
+		}
+	}
+	return false
 }
 
 func major(dev uint64) uint64 {

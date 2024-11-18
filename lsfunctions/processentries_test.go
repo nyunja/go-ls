@@ -6,24 +6,23 @@ import (
 )
 
 func Test_processEntries(t *testing.T) {
-	var mockEntries = []FileInfo{
-		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0100644, size: 4}},
-		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 040755, size: 10}},
-		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0644, size: 7}},
+	mockEntries := []FileDetails{
+		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0o100644, size: 4}},
+		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 0o40755, size: 10}},
+		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0o644, size: 7}},
 	}
-	var newEntries = []Entry{
+	newEntries := []Entry{
 		{Name: "main.go", Mode: "-rw-r--r--", Size: "4", Time: "Jan  1  0001"},
 		{Name: "ted", Mode: "-rwxr-xr-x", Size: "10", Time: "Jan  1  0001"},
 		{Name: "go.mod", Mode: "-rw-r--r--", Size: "7", Time: "Jan  1  0001"},
 	}
 	tests := []struct {
-		name  string
-		entries  []FileInfo
-		want  []Entry
-		want1 Widths
+		name    string
+		entries []FileDetails
+		want    []Entry
+		want1   Widths
 	}{
 		{name: "test1", entries: mockEntries, want: newEntries, want1: Widths{sizeCol: 2, timeCol: 12, modCol: 10}},
-
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -28,7 +28,7 @@ import (
 // 	"/proc/self/fd":             "dir",
 // }
 
-func DisplayLongFormat(w io.Writer, entries []FileInfo) {
+func DisplayLongFormat(w io.Writer, entries []FileDetails) {
 	t := getTotalBlocks(entries)
 	if ShowTotals {
 		fmt.Printf("total %d\n", t)
@@ -67,9 +67,9 @@ func colorLinkTarget(path, s string) string {
 		return s
 	} else {
 		permissions, err := formatPermissionsWithACL(absPath, info.Mode())
-		if err!= nil {
-            return "cannot format permissions: " + err.Error()
-        }
+		if err != nil {
+			return "cannot format permissions: " + err.Error()
+		}
 		newEntry = Entry{Name: s, Mode: permissions, Path: absPath}
 	}
 	colorEntry := colorName(newEntry, true)

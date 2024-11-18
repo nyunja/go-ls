@@ -19,20 +19,18 @@ func main() {
 	}
 	// Sort paths alphabetically and case-insensitively
 	paths, idx := ls.SortPaths(paths)
-	
+
 	for i, path := range paths {
 		if i >= idx {
 			if flags.Recursive || len(paths) >= 1 {
 				if i > 0 {
 					fmt.Println()
 				}
-				if len(paths) > 1{
+				if len(paths) > 1 {
 					fmt.Printf("%s:\n", path)
 				}
 			}
-			if !ls.ShowTotals {
-				ls.ShowTotals = true
-			}
+			ls.ShowTotals = true
 		}
 		err := ls.ListPath(path, flags)
 		if err != nil {

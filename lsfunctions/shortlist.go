@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func DisplayShortList(w io.Writer, e []FileInfo) {
+func DisplayShortList(w io.Writer, e []FileDetails) {
 	// Process entries to create type []Entry
 	entries, _ := processEntries(e)
 

@@ -111,24 +111,24 @@ func Test_cleanName(t *testing.T) {
 
 func Test_sortEntries(t *testing.T) {
 	// Mock a []FileInfo for testing
-	var mockEntries = []FileInfo{
-		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0100644, modTime: time.Now()}},
-		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 040755, modTime: time.Now()}},
-		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0644, modTime: time.Now()}},
+	mockEntries := []FileDetails{
+		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0o100644, modTime: time.Now()}},
+		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 0o40755, modTime: time.Now()}},
+		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0o644, modTime: time.Now()}},
 	}
-	var sortedEntries = []FileInfo{
-		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0644, modTime: time.Now()}},
-		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0100644, modTime: time.Now()}},
-		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 040755, modTime: time.Now()}},
+	sortedEntries := []FileDetails{
+		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0o644, modTime: time.Now()}},
+		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0o100644, modTime: time.Now()}},
+		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 0o40755, modTime: time.Now()}},
 	}
 	type args struct {
-		entries []FileInfo
+		entries []FileDetails
 		flags   Flags
 	}
 	tests := []struct {
 		name string
 		args args
-		want []FileInfo
+		want []FileDetails
 	}{
 		{name: "test 1", args: args{entries: mockEntries, flags: Flags{}}, want: sortedEntries},
 	}
@@ -146,22 +146,22 @@ func Test_sortEntries(t *testing.T) {
 
 func Test_quickSort(t *testing.T) {
 	// Mock a []FileInfo for testing
-	var mockEntries = []FileInfo{
-		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0100644, modTime: time.Now()}},
-		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 040755, modTime: time.Now()}},
-		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0644, modTime: time.Now()}},
+	mockEntries := []FileDetails{
+		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0o100644, modTime: time.Now()}},
+		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 0o40755, modTime: time.Now()}},
+		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0o644, modTime: time.Now()}},
 	}
-	var sortedEntries = []FileInfo{
-		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0644, modTime: time.Now()}},
-		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0100644, modTime: time.Now()}},
-		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 040755, modTime: time.Now()}},
+	sortedEntries := []FileDetails{
+		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0o644, modTime: time.Now()}},
+		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0o100644, modTime: time.Now()}},
+		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 0o40755, modTime: time.Now()}},
 	}
 	type args struct {
-		entries []FileInfo
+		entries []FileDetails
 		low     int
 		high    int
 		flags   Flags
-		want    []FileInfo
+		want    []FileDetails
 	}
 	tests := []struct {
 		name string
@@ -183,14 +183,14 @@ func Test_quickSort(t *testing.T) {
 
 func Test_compareEntries(t *testing.T) {
 	// Mock a []FileInfo for testing
-	var mockEntries = []FileInfo{
-		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0100644, modTime: time.Now()}},
-		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 040755, modTime: time.Now()}},
-		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0644, modTime: time.Now()}},
+	mockEntries := []FileDetails{
+		{Name: "main.go", Info: mockFileInfo{name: "main.go", mode: 0o100644, modTime: time.Now()}},
+		{Name: "ted", Info: mockFileInfo{name: "ted", mode: 0o40755, modTime: time.Now()}},
+		{Name: "go.mod", Info: mockFileInfo{name: "go.mod", mode: 0o644, modTime: time.Now()}},
 	}
 	type args struct {
-		a     FileInfo
-		b     FileInfo
+		a     FileDetails
+		b     FileDetails
 		flags Flags
 	}
 	tests := []struct {

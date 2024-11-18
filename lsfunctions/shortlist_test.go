@@ -8,14 +8,14 @@ import (
 
 func TestDisplayShortList(t *testing.T) {
 	type args struct {
-		e []FileInfo
+		e []FileDetails
 	}
 	tests := []struct {
 		name  string
 		args  args
 		wantW string
 	}{
-		{name: "test with no entries", args: args{e: []FileInfo{}}, wantW: ""},
+		{name: "test with no entries", args: args{e: []FileDetails{}}, wantW: ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

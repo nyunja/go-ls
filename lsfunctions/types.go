@@ -2,8 +2,8 @@ package lsfunctions
 
 import "os"
 
-// FileInfo struct to store file information from readDir function
-type FileInfo struct {
+// FileDetails struct to store file information from readDir function
+type FileDetails struct {
 	Path       string
 	Name       string
 	Info       os.FileInfo

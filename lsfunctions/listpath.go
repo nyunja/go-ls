@@ -133,19 +133,20 @@ func ListPath(path string, flags Flags) error {
 // Returns:
 //   - []FileInfo: A slice of FileInfo structures containing information about the directory entries.
 //   - error: An error if there was a problem reading the directory or its contents.
-func readDir(path string, flags Flags) ([]FileInfo, error) {
+func readDir(path string, flags Flags) ([]FileDetails, error) {
 	var target string
 	if info, err := os.Lstat(path); err == nil {
+
 		if flags.Long {
 			if target, err = os.Readlink(path); err == nil {
-				entry := FileInfo{Name: path, Info: info, LinkTarget: target}
-				return []FileInfo{entry}, nil
+				entry := FileDetails{Name: path, Info: info, LinkTarget: target}
+				return []FileDetails{entry}, nil
 			}
 		}
 		if !info.IsDir() {
 			if _, err = os.Readlink(path); err != nil {
-				entry := FileInfo{Name: path, Info: info}
-				return []FileInfo{entry}, nil
+				entry := FileDetails{Name: path, Info: info}
+				return []FileDetails{entry}, nil
 			}
 		}
 	}
@@ -160,28 +161,29 @@ func readDir(path string, flags Flags) ([]FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	var entries []FileInfo
+	var entries []FileDetails
 
 	// Add etries for parents directory and current directory
 	if flags.All {
 		if currentInfo, err := os.Stat(path); err == nil {
-			currentEntry := FileInfo{Name: ".", Info: currentInfo}
+			currentEntry := FileDetails{Name: ".", Info: currentInfo}
 			setEntryPath(path, &currentEntry)
 			entries = append(entries, currentEntry)
 		}
 
 		parentDir := getParentDir(path)
 		if parentInfo, err := os.Stat(parentDir); err == nil {
-			parentEntry := FileInfo{Name: "..", Info: parentInfo}
+			parentEntry := FileDetails{Name: "..", Info: parentInfo}
 			setEntryPath(path, &parentEntry)
 			entries = append(entries, parentEntry)
 		}
 	}
+
 	for _, file := range files {
 		if !flags.All && strings.HasPrefix(file.Name(), ".") {
 			continue
 		}
-		entry := FileInfo{Name: file.Name(), Info: file}
+		entry := FileDetails{Name: file.Name(), Info: file}
 		setEntryPath(path, &entry)
 		// Get the Rdev for device files
 		mode := file.Mode().String()
@@ -251,13 +253,13 @@ func getParentDir(path string) string {
 
 // Returns:
 //   - []FileInfo: A sorted slice of FileInfo structures.
-func sortEntries(entries []FileInfo, flags Flags) []FileInfo {
+func sortEntries(entries []FileDetails, flags Flags) []FileDetails {
 	quickSort(entries, 0, len(entries)-1, flags)
 	return entries
 }
 
 // quickSort implements the quicksort algorithm
-func quickSort(entries []FileInfo, low, high int, flags Flags) {
+func quickSort(entries []FileDetails, low, high int, flags Flags) {
 	if low < high {
 		pi := partition(entries, low, high, flags)
 		quickSort(entries, low, pi-1, flags)
@@ -266,7 +268,7 @@ func quickSort(entries []FileInfo, low, high int, flags Flags) {
 }
 
 // partition is a helper function for quickSort
-func partition(entries []FileInfo, low, high int, flags Flags) int {
+func partition(entries []FileDetails, low, high int, flags Flags) int {
 	pivot := entries[high]
 	i := low - 1
 
@@ -282,7 +284,7 @@ func partition(entries []FileInfo, low, high int, flags Flags) int {
 }
 
 // compareEntries compares two FileInfo entries based on the sorting criteria
-func compareEntries(a, b FileInfo, flags Flags) bool {
+func compareEntries(a, b FileDetails, flags Flags) bool {
 	if flags.Time {
 		return a.Info.ModTime().After(b.Info.ModTime())
 	}
@@ -308,7 +310,7 @@ func cleanName(name string) string {
 }
 
 // setEntryPath sets the full path for a FileInfo entry
-func setEntryPath(baseDir string, entry *FileInfo) {
+func setEntryPath(baseDir string, entry *FileDetails) {
 	if entry.Name == "." {
 		entry.Path = baseDir
 	} else if entry.Name == ".." {
