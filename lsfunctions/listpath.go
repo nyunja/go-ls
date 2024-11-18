@@ -198,16 +198,7 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 		entries = append(entries, entry)
 	}
 
-	// Sort entries
-	entries = sortEntries(entries, flags)
-
-	if flags.Reverse {
-		for i := len(entries)/2 - 1; i >= 0; i-- {
-			opp := len(entries) - 1 - i
-			entries[i], entries[opp] = entries[opp], entries[i]
-		}
-	}
-	return entries, nil
+	return sortEntries(entries, flags), nil
 }
 
 // getParentDir returns the parent directory path of the given path.
@@ -255,6 +246,13 @@ func getParentDir(path string) string {
 //   - []FileInfo: A sorted slice of FileInfo structures.
 func sortEntries(entries []FileDetails, flags Flags) []FileDetails {
 	quickSort(entries, 0, len(entries)-1, flags)
+
+	if flags.Reverse {
+		for i := len(entries)/2 - 1; i >= 0; i-- {
+			opp := len(entries) - 1 - i
+			entries[i], entries[opp] = entries[opp], entries[i]
+		}
+	}
 	return entries
 }
 
