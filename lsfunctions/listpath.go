@@ -157,11 +157,11 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 	}
 	defer dir.Close()
 
-	files, err := dir.Readdir(-1)
+	files, err := dir.ReadDir(-1)
 	if err != nil {
 		return nil, err
 	}
-	var entries []FileDetails
+	entries := make([]FileDetails, 0, len(files)+2)
 
 	// Add etries for parents directory and current directory
 	if flags.All {
@@ -172,22 +172,28 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 		if !flags.All && strings.HasPrefix(file.Name(), ".") {
 			continue
 		}
-		entry := FileDetails{Name: file.Name(), Info: file}
-		setEntryPath(path, &entry)
-		// Get the Rdev for device files
-		mode := file.Mode().String()
-		switch mode[0] {
-		case 'l', 'L':
-			newPath := joinPath(path, file.Name())
-			linkTarget, err := os.Readlink(newPath)
-			if err == nil {
-				entry.LinkTarget = linkTarget
-			}
-		}
+		fileInfo, err := file.Info()
+		if err != nil {
+            fmt.Fprintf(os.Stderr, "warning: could not get info for %s: %v\n", file.Name(), err)
+            continue
+        }
+		entry := createFileDetails(path, file.Name(), fileInfo)
 		entries = append(entries, entry)
 	}
 
 	return sortEntries(entries, flags), nil
+}
+
+func createFileDetails(path, name string, info os.FileInfo) FileDetails {
+	entry := FileDetails{Name: name, Info: info}
+	setEntryPath(path, &entry)
+	if info.Mode()&os.ModeSymlink != 0 {
+        newPath := joinPath(path, name)
+        if linkTarget, err := os.Readlink(newPath); err == nil {
+            entry.LinkTarget = linkTarget
+        }
+    }
+	return entry
 }
 
 func createDotEntry(path string) []FileDetails {
