@@ -56,9 +56,9 @@ func ListPath(path string, flags Flags) error {
 //   - error: An error if there was a problem reading the directory or its contents.
 func readDir(path string, flags Flags) ([]FileDetails, error) {
 	info, err := os.Lstat(path)
-    if err != nil {
-        return nil, fmt.Errorf("error accessing path %s: %w", path, err)
-    }
+	if err != nil {
+		return nil, fmt.Errorf("error accessing path %s: %w", path, err)
+	}
 	if !info.IsDir() {
 		return handleNonDirectory(path, info, flags)
 	}
@@ -86,9 +86,9 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 		}
 		fileInfo, err := file.Info()
 		if err != nil {
-            fmt.Fprintf(os.Stderr, "warning: could not get info for %s: %v\n", file.Name(), err)
-            continue
-        }
+			fmt.Fprintf(os.Stderr, "warning: could not get info for %s: %v\n", file.Name(), err)
+			continue
+		}
 		entry := createFileDetails(path, file.Name(), fileInfo)
 		entries = append(entries, entry)
 	}
@@ -97,25 +97,26 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 }
 
 func handleNonDirectory(path string, info os.FileInfo, flags Flags) ([]FileDetails, error) {
-    entry := FileDetails{Name: path, Info: info}
-    if flags.Long {
-        target, err := os.Readlink(path)
-        if err == nil {
-            entry.LinkTarget = target
-        }
-    }
-    return []FileDetails{entry}, nil
+	entry := FileDetails{Name: path, Info: info}
+	if flags.Long {
+		if info.Mode()&os.ModeSymlink != 0 {
+			if target, err := os.Readlink(path); err == nil {
+				entry.LinkTarget = target
+			}
+		}
+	}
+	return []FileDetails{entry}, nil
 }
 
 func createFileDetails(path, name string, info os.FileInfo) FileDetails {
 	entry := FileDetails{Name: name, Info: info}
 	setEntryPath(path, &entry)
 	if info.Mode()&os.ModeSymlink != 0 {
-        newPath := joinPath(path, name)
-        if linkTarget, err := os.Readlink(newPath); err == nil {
-            entry.LinkTarget = linkTarget
-        }
-    }
+		newPath := joinPath(path, name)
+		if linkTarget, err := os.Readlink(newPath); err == nil {
+			entry.LinkTarget = linkTarget
+		}
+	}
 	return entry
 }
 
@@ -123,7 +124,7 @@ func createDotEntry(path string) []FileDetails {
 	var entries []FileDetails
 	if currentInfo, err := os.Stat(path); err == nil {
 		currentEntry := FileDetails{Name: ".", Info: currentInfo}
-        entries = append(entries, currentEntry)
+		entries = append(entries, currentEntry)
 	}
 	parentDir := getParentDir(path)
 	if parentInfo, err := os.Stat(parentDir); err == nil {
