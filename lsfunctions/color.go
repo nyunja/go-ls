@@ -23,6 +23,9 @@ const (
 	socket           = "\033[1;38;2;163;71;181m"
 )
 
+// colorName applies color codes to different file types and symbolic links.
+// Returns the colorized name of the file or symbolic link.
+// If the entry is a symbolic link and the isTarget flag is true, the link target is also colorized.
 func colorName(entry Entry, isTarget bool) Entry {
 	// Color map for different file types
 	colors := map[string]string{
@@ -74,4 +77,17 @@ func colorName(entry Entry, isTarget bool) Entry {
 	}
 
 	return entry
+}
+
+// This function resolves the target of symbolic links and applies color formatting to the link target.
+// It takes the path to the parent directory and the symbolic link path as input,
+// and returns the colored link target.
+func colorLinkTarget(path, s string) string {
+	newEntry, err := getLinkTargetType(path, s)
+	if err != nil {
+		return s
+	}
+	colorEntry := colorName(newEntry, true)
+
+	return colorEntry.Name
 }
