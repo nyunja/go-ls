@@ -5,14 +5,15 @@ import (
 	"os"
 	"os/user"
 	"strconv"
-	"strings"
 	"syscall"
-	"time"
 )
 
-func processEntries(entries []FileDetails) ([]Entry, Widths) {
+// generateEntries converts a list of FileDetails into a list of Entry.
+// If the file is a device file, is also gets the major and minor device numbers from the Rdev field.
+// It also adds quotes around the file names if they contain spaces.
+// It also gets the user and group names from the owner and group fields.
+func generateEntries(entries []FileDetails) []Entry {
 	var newEntries []Entry
-	var w Widths
 	for _, entry := range entries {
 		var f Entry
 		info := entry.Info
@@ -20,9 +21,6 @@ func processEntries(entries []FileDetails) ([]Entry, Widths) {
 		f.Name = addQuotes(entry.Name)
 		f.Mode, _ = formatPermissionsWithACL(entry.Path, mode)
 		f.Path = entry.Path
-		if strings.HasPrefix(f.Mode, "L") {
-			f.Mode = "l" + f.Mode[1:]
-		}
 		f.IsDirectory = info.IsDir()
 		f.LinkTarget = entry.LinkTarget
 		f.Time = formatTime(info.ModTime())
@@ -47,7 +45,6 @@ func processEntries(entries []FileDetails) ([]Entry, Widths) {
 			group = strconv.FormatUint(uint64(gid), 10)
 		} else {
 			fmt.Printf("error getting syscall info")
-			// return widths, ugl
 		}
 		if u, err := user.LookupId(owner); err == nil {
 			f.Owner = u.Username
@@ -55,6 +52,17 @@ func processEntries(entries []FileDetails) ([]Entry, Widths) {
 		if g, err := user.LookupGroupId(group); err == nil {
 			f.Group = g.Name
 		}
+
+		newEntries = append(newEntries, f)
+	}
+	return newEntries
+}
+
+// getWidths calculates the maximum width for each column in the long format output.
+// It considers the mode, link count, owner, group, size, minor, and time columns.
+func getWidths(entries []Entry) Widths {
+	var w Widths
+	for _, f := range entries {
 		w.modCol = getMax(w.modCol, len(f.Mode))
 		w.groupCol = getMax(w.groupCol, len(f.Group))
 		w.ownerCol = getMax(w.ownerCol, len(f.Owner))
@@ -62,69 +70,6 @@ func processEntries(entries []FileDetails) ([]Entry, Widths) {
 		w.minorCol = getMax(w.minorCol, len(f.Minor))
 		w.timeCol = getMax(w.timeCol, len(f.Time))
 		w.linkCol = getMax(w.linkCol, len(f.LinkCount))
-		newEntries = append(newEntries, f)
 	}
-	return newEntries, w
-}
-
-func getMax(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-// formatTime formats a given time based on whether it's in the current year or not.
-// For times in the current year, it returns the format "Jan _2 15:04".
-// For times in previous years, it returns the format "Jan _2 2006".
-//
-// Parameters:
-//   - modTime: A time.Time value representing the modification time to be formatted.
-//
-// Returns:
-//   - string: A formatted string representation of the input time.
-func formatTime(modTime time.Time) string {
-	now := time.Now()
-	if modTime.Year() == now.Year() {
-		return modTime.Format("Jan _2 15:04")
-	}
-	return modTime.Format("Jan _2  2006")
-}
-
-func getTotalBlocks(entries []FileDetails) TotalBlocks {
-	var t TotalBlocks
-	for _, entry := range entries {
-		if stat, ok := entry.Info.Sys().(*syscall.Stat_t); ok {
-			t += TotalBlocks(stat.Blocks)
-		}
-	}
-	return t / 2
-}
-
-func addQuotes(s string) string {
-	if strings.Contains(s, " ") || hasSpecialChar(s) {
-		s = fmt.Sprintf(`'%s'`, s)
-	}
-	return s
-}
-
-func hasSpecialChar(s string) bool {
-	if len(s) == 0 {
-		return false
-	}
-	specialChars := []rune{'[', '#', ']', '{', '}', '|', '\\', ':', ';', '<', '>', ',', '?', '!', '@', '$', '%', '^', '&', '*', '(', ')', '~', '`', '"', '\'', '=', '+'}
-	for _, ch := range specialChars {
-		if strings.ContainsRune(s, ch) {
-			return true
-		}
-	}
-	return false
-}
-
-func major(dev uint64) uint64 {
-	return (dev >> 8) & 0xff
-}
-
-func minor(dev uint64) uint64 {
-	return dev & 0xff
+	return w
 }
