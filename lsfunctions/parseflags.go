@@ -45,10 +45,12 @@ func ParseFlags(args []string) (flags Flags, parsedArgs []string, err error) {
 						case 'r':
 							flags.Reverse = true
 						default:
-							return Flags{}, nil, fmt.Errorf("invalid option -- '%s'", arg[1:])
+							return Flags{}, nil, fmt.Errorf("invalid option -- '%s'\nTry 'ls --help' for more information", arg[1:])
 						}
 					}
 				}
+			} else {
+				return Flags{}, nil, fmt.Errorf("cannot access '%s': No such file or directory", arg)
 			} 
 		} else {
 			parsedArgs = append(parsedArgs, arg)
