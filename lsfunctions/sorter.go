@@ -117,7 +117,9 @@ func partition(entries []FileDetails, low, high int, flags Flags) int {
 // compareEntries compares two FileInfo entries based on the sorting criteria
 func compareEntries(a, b FileDetails, flags Flags) bool {
 	if flags.Time {
-		return a.Info.ModTime().After(b.Info.ModTime())
+		if a.Info.ModTime().Nanosecond() != b.Info.ModTime().Nanosecond() {
+			return a.Info.ModTime().After(b.Info.ModTime())
+		}
 	}
 
 	s1 := strings.ToLower(a.Name)
