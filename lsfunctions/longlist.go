@@ -11,7 +11,7 @@ func DisplayLongFormat(w io.Writer, entries []FileDetails) {
 	if ShowTotals {
 		fmt.Printf("total %d\n", t)
 	}
-	newEntries := generateEntries(entries)
+	newEntries := prepareFileDetailsForDisplay(entries)
 	widths := getWidths(newEntries)
 	for _, entry := range newEntries {
 		fmt.Fprintln(w, getLongFormatString(entry, widths))

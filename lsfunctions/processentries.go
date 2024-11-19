@@ -8,12 +8,12 @@ import (
 	"syscall"
 )
 
-// generateEntries converts a list of FileDetails into a list of Entry.
+// prepareFileDetailsForDisplay converts a list of FileDetails into a list of Entry.
 // If the file is a device file, is also gets the major and minor device numbers from the Rdev field.
 // It also adds quotes around the file names if they contain spaces.
 // It also gets the user and group names from the owner and group fields.
-func generateEntries(entries []FileDetails) []Entry {
-	var newEntries []Entry
+func prepareFileDetailsForDisplay(entries []FileDetails) []Entry {
+	var formattedEntries []Entry
 	for _, entry := range entries {
 		var f Entry
 		info := entry.Info
@@ -53,9 +53,9 @@ func generateEntries(entries []FileDetails) []Entry {
 			f.Group = g.Name
 		}
 
-		newEntries = append(newEntries, f)
+		formattedEntries = append(formattedEntries, f)
 	}
-	return newEntries
+	return formattedEntries
 }
 
 // getWidths calculates the maximum width for each column in the long format output.
