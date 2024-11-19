@@ -26,12 +26,9 @@ func Test_processEntries(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := processEntries(tt.entries)
+			got := generateEntries(tt.entries)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("processEntries() got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("processEntries() got1 = %v, want %v", got1, tt.want1)
 			}
 		})
 	}

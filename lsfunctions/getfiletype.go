@@ -1,9 +1,14 @@
 package lsfunctions
 
 import (
+	"fmt"
+	"os"
 	"strings"
 )
 
+// getFileType determines the file type based on the file mode and file extension.
+// Returns the entry with the file type.
+// If the file type cannot be determined, it returns other.
 func getFileType(entry Entry) (Entry, string) {
 	mod := entry.Mode
 	// Handel pipe files
@@ -58,4 +63,28 @@ func getFileType(entry Entry) (Entry, string) {
 	default:
 		return entry, "other"
 	}
+}
+
+// This function resolves the target of symbolic links by concatenating the parent directory path and the symbolic link path.
+// It takes the parent directory path and the symbolic link path as input,
+// and returns the resolved target path.
+func getLinkTargetType(path, s string) (Entry, error) {
+	absPath := resolveRelativePath(path, s)
+	if strings.HasPrefix(s, "../share") {
+		absPath = "/usr" + absPath
+	}
+	info, err := os.Lstat(absPath)
+	var newEntry Entry
+	if os.IsNotExist(err) {
+		return newEntry, fmt.Errorf("target not found: %s", s)
+	} else if err != nil {
+		return newEntry, fmt.Errorf("error getting target info: %s", err.Error())
+	} else {
+		permissions, err := formatPermissionsWithACL(absPath, info.Mode())
+		if err != nil {
+			return newEntry, fmt.Errorf("cannot format permissions: %s", err.Error())
+		}
+		newEntry = Entry{Name: s, Mode: permissions, Path: absPath}
+	}
+	return newEntry, nil
 }

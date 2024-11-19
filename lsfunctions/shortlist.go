@@ -8,7 +8,7 @@ import (
 
 func DisplayShortList(w io.Writer, e []FileDetails) {
 	// Process entries to create type []Entry
-	entries, _ := processEntries(e)
+	entries := generateEntries(e)
 
 	var fileNameEntries []string
 	displayColumn := false
@@ -26,7 +26,7 @@ func DisplayShortList(w io.Writer, e []FileDetails) {
 
 	// Prepare the list of file names and check if any entry is too long
 	for _, entry := range entries {
-		formattedName := GetShortFormat(entry)
+		formattedName := getShortFormatString(entry)
 		if len(formattedName) > 100 {
 			displayColumn = true
 		}
@@ -67,7 +67,7 @@ func DisplayShortList(w io.Writer, e []FileDetails) {
 	}
 }
 
-func GetShortFormat(entry Entry) string {
+func getShortFormatString(entry Entry) string {
 	// Color output
 	entry = colorName(entry, false)
 
