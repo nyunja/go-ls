@@ -44,39 +44,39 @@ func colorName(entry Entry, isTarget bool) Entry {
 		"css":            cyan,
 		"exec":           green,
 	}
-
+	// Handle target links that are symbolic links
 	if isTarget {
 		if strings.Split(entry.Mode, "-")[0] == "lrwx" {
-			originalsize := len(entry.Name)
-			entry.Name = strings.TrimSpace(entry.Name)
-			padding := originalsize - len(entry.Name)
-			entry.Name = boldYellow + blackBack + entry.Name + reset
-			entry.Name = entry.Name + strings.Repeat(" ", padding)
+			entry.Name = addColorAndPadding(boldYellow + blackBack, entry.Name, reset)
 			return entry
 		}
 	}
 	// Handle symbolic links
 	if (entry.Mode[0] == 'l' || entry.Mode[0] == 'L') && !isTarget {
-		originalsize := len(entry.Name)
-		entry.Name = strings.TrimSpace(entry.Name)
-		padding := originalsize - len(entry.Name)
-		entry.Name = turqoise + entry.Name + reset
-		entry.Name = entry.Name + strings.Repeat(" ", padding)
+		entry.Name = addColorAndPadding(turqoise, entry.Name, reset)
 		return entry
 	}
 
 	// Color code based on file type
 	entry, fileType := getFileType(entry)
 	if color, exists := colors[fileType]; exists {
-		originalsize := len(entry.Name)
-		entry.Name = strings.TrimSpace(entry.Name)
-		padding := originalsize - len(entry.Name)
-
-		entry.Name = color + entry.Name + reset
-		entry.Name = entry.Name + strings.Repeat(" ", padding)
+		entry.Name = addColorAndPadding(color, entry.Name, reset)
 	}
 
 	return entry
+}
+
+// addColorAndPadding adds color codes and padding to the file or symbolic link name.
+// The color and reset codes are applied to the name using ANSI escape sequences.
+// The padding is added to the end of the name to ensure consistent formatting.
+// It returns the colored and padded name.
+func addColorAndPadding(color, name, reset string) string {
+	originalsize := len(name)
+	name = strings.TrimSpace(name)
+	padding := originalsize - len(name)
+	name = color + name + reset
+	name = name + strings.Repeat(" ", padding)
+	return name
 }
 
 // This function resolves the target of symbolic links and applies color formatting to the link target.
