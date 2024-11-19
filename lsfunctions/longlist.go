@@ -9,7 +9,7 @@ import (
 func DisplayLongFormat(w io.Writer, entries []FileDetails) {
 	t := getTotalBlocks(entries)
 	if ShowTotals {
-		fmt.Printf("total %d\n", t)
+		fmt.Fprintf(w, "total %d\n", t)
 	}
 	formattedEntries := prepareFileDetailsForDisplay(entries)
 	widths := getWidths(formattedEntries)
