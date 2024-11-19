@@ -70,7 +70,7 @@ func getFileType(entry Entry) (Entry, string) {
 // and returns the resolved target path.
 func getLinkTargetType(path, s string) (Entry, error) {
 	absPath := resolveRelativePath(path, s)
-	if strings.HasPrefix(s, "../share") {
+	if strings.HasPrefix(s, "../share") && !strings.HasPrefix(absPath, "/usr") {
 		absPath = "/usr" + absPath
 	}
 	info, err := os.Lstat(absPath)
