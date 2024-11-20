@@ -41,10 +41,10 @@ func getFileType(entry Entry) (Entry, string) {
 	if strings.ContainsAny(mod, "x") {
 		return entry, "exec"
 	}
-	if strings.Count(mod, "w") == 3 {
-		return entry, "worldw-ritable"
-	}
-	name := strings.Trim(entry.Name, "'")
+	// if strings.Count(mod, "w") == 3 {
+	// 	return entry, "worldwritable"
+	// }
+	name := strings.TrimRight(strings.TrimLeft(strings.TrimSpace(entry.Name), "'"), "'")
 	tokens := strings.Split(strings.ToLower(name), ".")
 	ext := "." + tokens[len(tokens)-1]
 	switch ext {
@@ -54,6 +54,8 @@ func getFileType(entry Entry) (Entry, string) {
 		return entry, "pdf"
 	case ".rar", ".zip", ".tar", ".gz", ".7z", "deb":
 		return entry, "archive"
+	case ".webm", ".mp4", ".mkv", ".avi", ".mov", ".flv", ".mpg", ".mpeg":
+		return entry, "video"
 	case ".mp3", ".wav", ".flac":
 		return entry, "audio"
 	case ".webp", ".jpg", ".jpeg", ".png", ".gif":
