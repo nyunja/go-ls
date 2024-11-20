@@ -23,6 +23,7 @@ func prepareFileDetailsForDisplay(entries []FileDetails) []Entry {
 		f.Path = entry.Path
 		f.IsDirectory = info.IsDir()
 		f.LinkTarget = entry.LinkTarget
+		// f.IsBrokenLink = entry.IsBrokenLink
 		f.Time = formatTime(info.ModTime())
 		// Get size string
 		f.Size = fmt.Sprintf("%d", info.Size())

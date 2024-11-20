@@ -59,7 +59,7 @@ func readDir(path string, flags Flags) ([]FileDetails, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error accessing path %s: %w", path, err)
 	}
-	if !info.IsDir() {
+	if !info.IsDir() && flags.Long {
 		return handleNonDirectory(path, info, flags)
 	}
 
@@ -100,8 +100,16 @@ func handleNonDirectory(path string, info os.FileInfo, flags Flags) ([]FileDetai
 	entry := FileDetails{Name: path, Info: info}
 	if flags.Long {
 		if info.Mode()&os.ModeSymlink != 0 {
-			if target, err := os.Readlink(path); err == nil {
-				entry.LinkTarget = target
+			if linkTarget, err := os.Readlink(path); err == nil {
+				// _, err := getLinkTargetType(path, linkTarget)
+				// if err != nil {
+				// 	if strings.Contains(err.Error(), "target not found") {
+				// 		entry.IsBrokenLink = true
+				// 		// entry.TargetInfo = TargetInfo{Name: linkTarget, Mode: newEntry.Mode, IsBrokenLink: true}
+				// 	} 
+				// }
+				// entry.TargetInfo = TargetInfo{Name: linkTarget, Mode: newEntry.Mode}
+				entry.LinkTarget = linkTarget
 			}
 		}
 	}
@@ -114,6 +122,14 @@ func createFileDetails(path, name string, info os.FileInfo) FileDetails {
 	if info.Mode()&os.ModeSymlink != 0 {
 		newPath := joinPath(path, name)
 		if linkTarget, err := os.Readlink(newPath); err == nil {
+			// _, err := getLinkTargetType(path, linkTarget)
+			// if err != nil {
+			// 	if strings.Contains(err.Error(), "target not found") {
+			// 		entry.IsBrokenLink = true
+			// 		// entry.TargetInfo = TargetInfo{Name: linkTarget, Mode: newEntry.Mode, IsBrokenLink: true}
+			// 	} 
+			// }
+			// entry.TargetInfo = TargetInfo{Name: linkTarget, Mode: newEntry.Mode}
 			entry.LinkTarget = linkTarget
 		}
 	}

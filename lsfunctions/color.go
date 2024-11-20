@@ -20,6 +20,7 @@ const (
 	green            = "\033[1;38;2;39;169;105m"
 	greenBackground  = "\033[42m"
 	magentaBold      = "\033[1;35m"
+	pink             = "\033[1;38;2;162;71;186m"
 	socket           = "\033[1;38;2;163;71;181m"
 )
 
@@ -29,6 +30,7 @@ const (
 func colorName(entry Entry, isTarget bool) Entry {
 	// Color map for different file types
 	colors := map[string]string{
+		"video":          pink,
 		"world-writable": magentaBold,
 		"pipe":           yellow + blackBack,
 		"socket":         socket,
@@ -44,10 +46,19 @@ func colorName(entry Entry, isTarget bool) Entry {
 		"css":            cyan,
 		"exec":           green,
 	}
+
+	// if strings.Contains(entry.Path, "/usr/bin") ||
+	// strings.Contains(entry.Path, "/bin") ||
+	// strings.Contains(entry.Path, "/dev") {
+
+	// if entry.IsBrokenLink {
+	// 	entry.Name = addColorAndPadding(red+blackBack, entry.Name, reset)
+	// 	return entry
+	// }
 	// Handle target links that are symbolic links
 	if isTarget {
 		if strings.Split(entry.Mode, "-")[0] == "lrwx" {
-			entry.Name = addColorAndPadding(boldYellow + blackBack, entry.Name, reset)
+			entry.Name = addColorAndPadding(boldYellow+blackBack, entry.Name, reset)
 			return entry
 		}
 	}
@@ -86,6 +97,12 @@ func colorLinkTarget(path, s string) string {
 	newEntry, err := getLinkTargetType(path, s)
 	if err != nil {
 		return s
+		// if strings.Contains(err.Error(), "target not found") {
+		// 	newEntry.IsBrokenLink = true
+		// 	// entry.TargetInfo = TargetInfo{Name: linkTarget, Mode: newEntry.Mode, IsBrokenLink: true}
+		// } else {
+		// 	return s
+		// }
 	}
 	colorEntry := colorName(newEntry, true)
 

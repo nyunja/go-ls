@@ -8,13 +8,21 @@ type FileDetails struct {
 	Name       string
 	Info       os.FileInfo
 	LinkTarget string
+	IsBrokenLink bool
 	Rdev       uint64
+	TargetInfo TargetInfo
 }
 
 type Entry struct {
 	Name, Mode, User, Owner, Group, Type,
 	LinkTarget, LinkCount, Size, Minor, Time, Path string
-	IsDirectory bool
+	IsDirectory, IsBrokenLink bool
+	TargetInfo TargetInfo
+}
+
+type TargetInfo struct {
+	Name, Mode string
+	IsBrokenLink bool
 }
 
 type TotalBlocks int64
